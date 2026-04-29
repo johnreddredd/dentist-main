@@ -96,3 +96,5 @@ export function CasePatientShareCard({
     </section>
   );
 }
+
+export default CasePatientShareCard;

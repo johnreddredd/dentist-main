@@ -174,6 +174,20 @@ stains ONLY — it must NOT affect intrinsic enamel
 features.
 
 ═══════════════════════════════════════════════════
+TOOTH SHAPE LOCK (CRITICAL)
+═══════════════════════════════════════════════════
+
+Preserve the exact natural tooth anatomy.
+
+Do NOT alter tooth shape, edge contours, width,
+height, or symmetry.
+
+Do NOT smooth, refine, or idealize incisal edges.
+
+Any apparent change must result only from alignment
+or positioning — not reshaping.
+
+═══════════════════════════════════════════════════
 INCISAL EDGE PRESERVATION (CRITICAL)
 ═══════════════════════════════════════════════════
 
@@ -183,6 +197,16 @@ teeth). Preserve all natural irregularities, chipping,
 and asymmetry exactly as in the original image.
 Orthodontic treatment must NOT make edges straighter,
 flatter, or more uniform.
+
+INCISAL EDGE NON-UNIFORMITY (CRITICAL):
+
+Do NOT align incisal edges into a smooth,
+continuous, or evenly curved line. Maintain slight
+vertical variation between adjacent teeth (subtle
+height differences). Teeth must NOT appear evenly
+leveled or perfectly spaced along the edge. Even
+after alignment, preserve micro-asymmetry in edge
+height and positioning.
 
 ═══════════════════════════════════════════════════
 CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL)
@@ -198,9 +222,11 @@ NON-IDEAL FINISH:
 Do NOT produce a perfect or textbook smile. The
 result must look improved, not idealized. Maintain
 slight natural imperfections (uneven edges,
-non-uniform alignment). Incisal edges of anterior
-teeth follow INCISAL EDGE PRESERVATION (CRITICAL)
-above.
+non-uniform alignment). Tooth form and apparent
+change from ortho follow TOOTH SHAPE LOCK (CRITICAL)
+above; incisal edges of anterior teeth also follow
+INCISAL EDGE PRESERVATION (CRITICAL)
+and INCISAL EDGE NON-UNIFORMITY (CRITICAL) above.
 
 ENAMEL FEATURE LOCK:
 Do NOT remove or alter intrinsic enamel features
@@ -227,7 +253,36 @@ a perfect or textbook bite.
 
 VALIDATION RULE:
 If the result appears overly perfect, uniformly
-smooth, or artificially brightened, it is INVALID.
+smooth, or artificially brightened in tooth shade or
+enamel, it is INVALID. Subtle visual-only lighting
+and contrast that does not remove stains or defects,
+shift base tooth color, or change uniformity is
+permitted per PERCEPTUAL CLEANLINESS (VISUAL ONLY).
+
+═══════════════════════════════════════════════════
+PERCEPTUAL CLEANLINESS (VISUAL ONLY — CRITICAL)
+═══════════════════════════════════════════════════
+
+Enhance the appearance of cleanliness through lighting
+and contrast only.
+
+Slightly increase brightness in enamel highlights and
+deepen natural shadows near the gumline.
+
+Improve clarity and sharpness subtly to simulate
+professional dental photography.
+
+Do NOT remove stains, white spots, or enamel defects.
+
+Do NOT change base tooth color or uniformity.
+
+Teeth must appear cleaner due to lighting — not due
+to actual modification.
+
+This overrides strict preservation of capture lighting
+in PRESERVE EXACTLY only as needed for global
+photograph rendering per above — not facial identity,
+pose, background content, or dental anatomy.
 
 ═══════════════════════════════════════════════════
 PRESERVATION LANGUAGE
@@ -272,16 +327,27 @@ Unless explicitly specified by treatment selection:
   fluorosis, opacity patterns) — they may only move
   rigidly with the tooth during orthodontics; cleaning
   removes extrinsic stain only, never intrinsic pattern
+- Altering natural tooth shape, edge contours, width,
+  height, or symmetry for idealization; smoothing,
+  refining, or reshaping beyond TOOTH SHAPE LOCK
+  (positioning-only ortho); any change that reads as
+  dental reshaping rather than alignment
 - Reshaping, smoothing, or uniforming incisal edges
   (front teeth)—including making them straighter or
-  flatter after orthodontics; preserve original edge
-  character per INCISAL EDGE PRESERVATION
+  flatter after orthodontics; aligning edges into one
+  smooth, continuous, or evenly curved line; or
+  perfectly leveling edge heights—preserve original
+  edge character and micro-asymmetry per INCISAL
+  EDGE PRESERVATION and INCISAL EDGE NON-UNIFORMITY
 - Natural teeth rendered where teeth are missing
   or destroyed (must be prosthetic)
 - Facial hair modification on casual photo cases
-- Background, lighting, or photographic context
-  changes
-- Smile pose or expression alteration
+- Background, smile pose, expression, or photographic
+  context changes — except the controlled PERCEPTUAL
+  CLEANLINESS (VISUAL ONLY) block in prompts (lighting
+  and contrast for a cleaner photograph only; do NOT
+  remove stains, white spots, or enamel defects; do NOT
+  change base tooth color or uniformity)
 - Textbook-perfect / fully idealized occlusion (zero
   residual overjet, flattened curve, or over-open bite)
   when the case calls for believable post-orthodontic

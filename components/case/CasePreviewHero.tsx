@@ -4,6 +4,7 @@ import * as React from "react";
 import { Download } from "lucide-react";
 import { BeforeAfterSlider } from "@/components/review/before-after-slider";
 import { ImageWithSkeleton } from "@/components/review/image-with-skeleton";
+import { OriginalAspectPhotoFrame } from "@/components/review/original-aspect-photo-frame";
 import { downloadImageFromUrl } from "@/lib/download-image";
 import { cn } from "@/lib/utils";
 
@@ -100,24 +101,30 @@ export function CasePreviewHero({
         )}
       >
         {loading ? (
-          <div className="review-skeleton aspect-[4/3] min-h-[360px] w-full sm:min-h-[450px]" />
+          <div className="review-skeleton min-h-[360px] w-full sm:min-h-[450px]" />
         ) : mode === "split" ? (
           <div className="p-2 sm:p-3">
             <BeforeAfterSlider
               beforeSrc={beforeSrc}
               afterSrc={afterSrc}
               showHint={false}
-              className="[&>div:first-child]:rounded-xl"
+              className="w-full"
+              frameClassName="rounded-xl bg-[#F5F5F4]"
             />
           </div>
         ) : (
-          <div className="review-vignette">
-            <ImageWithSkeleton
-              src={mode === "before" ? beforeSrc : afterSrc}
-              alt=""
-              className={cn("aspect-[4/3] w-full min-h-[360px] sm:min-h-[475px]")}
-              imgClassName="object-cover object-[center_35%]"
-            />
+          <div className="review-vignette p-2 sm:p-3">
+            <OriginalAspectPhotoFrame
+              beforeSrc={beforeSrc}
+              className="rounded-xl bg-[#F5F5F4]"
+            >
+              <ImageWithSkeleton
+                src={mode === "before" ? beforeSrc : afterSrc}
+                alt=""
+                className="absolute inset-0"
+                imgClassName="object-contain object-center"
+              />
+            </OriginalAspectPhotoFrame>
           </div>
         )}
       </div>

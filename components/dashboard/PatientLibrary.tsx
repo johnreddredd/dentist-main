@@ -2,13 +2,17 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Sparkles, CheckCircle2, Clock } from "lucide-react";
+import { Users, CheckCircle2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useCasesStore } from "@/lib/stores/cases";
 import { useGenerateForm } from "@/lib/stores/generate-form";
 import { formatRelative } from "@/lib/utils";
+import {
+  formatPatientListName,
+  patientLibrarySearchHaystack,
+} from "@/lib/cases/patient-utils";
 import type { Mode, TreatmentCategory } from "@/types";
 
 type Filter = {
@@ -17,7 +21,7 @@ type Filter = {
   search: string;
 };
 
-export function CaseLibrary() {
+export function PatientLibrary() {
   const cases = useCasesStore((s) => s.cases);
   const [filter, setFilter] = React.useState<Filter>({
     mode: "all",
@@ -27,15 +31,11 @@ export function CaseLibrary() {
 
   const filtered = cases.filter((c) => {
     if (filter.mode !== "all" && c.mode !== filter.mode) return false;
-    if (filter.category !== "all" && c.treatmentData.category !== filter.category) return false;
+    if (filter.category !== "all" && c.treatmentData.category !== filter.category)
+      return false;
     if (filter.search) {
-      const needle = filter.search.toLowerCase();
-      const hay = (
-        c.constraints.treatmentType +
-        " " +
-        (c.treatmentData.material ?? "")
-      ).toLowerCase();
-      if (!hay.includes(needle)) return false;
+      const needle = filter.search.toLowerCase().trim();
+      if (!patientLibrarySearchHaystack(c).includes(needle)) return false;
     }
     return true;
   });
@@ -44,21 +44,21 @@ export function CaseLibrary() {
     return (
       <div className="rounded-2xl border border-dashed border-[color:var(--color-warm-300)] bg-white p-12 text-center">
         <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-[color:var(--color-teal-50)] text-[color:var(--color-teal-700)]">
-          <Sparkles className="size-5" />
+          <Users className="size-5" />
         </div>
         <p className="text-base font-medium text-[color:var(--color-warm-900)]">
-          No cases yet
+          No patients in the library yet
         </p>
         <p className="mx-auto mt-1 max-w-sm text-sm text-[color:var(--color-warm-500)]">
-          Create your first smile preview — upload a patient photo, pick a
-          treatment, choose a mode.
+          Generate a preview and save it with a name — then search here by
+          patient, chart ID, phone, or email.
         </p>
         <Link
           href="/generate"
           onClick={() => useGenerateForm.getState().reset()}
           className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[color:var(--color-teal-700)] px-5 text-sm font-medium text-white hover:bg-[color:var(--color-teal-800)]"
         >
-          <Sparkles className="size-4" /> Generate a preview
+          <Users className="size-4" /> New preview
         </Link>
       </div>
     );
@@ -68,12 +68,12 @@ export function CaseLibrary() {
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
-          placeholder="Search cases…"
+          placeholder="Search by name, chart #, phone, email…"
           value={filter.search}
           onChange={(e) =>
             setFilter((f) => ({ ...f, search: e.target.value }))
           }
-          className="sm:max-w-xs"
+          className="sm:max-w-md"
         />
         <Select
           value={filter.mode}
@@ -119,7 +119,7 @@ export function CaseLibrary() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={c.generatedImageUrl ?? c.originalPhotoUrl}
-                    alt="Case preview"
+                    alt="Preview"
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -141,7 +141,10 @@ export function CaseLibrary() {
               </div>
               <div className="space-y-2 p-4">
                 <p className="line-clamp-1 text-sm font-semibold text-[color:var(--color-warm-900)]">
-                  {c.constraints.treatmentType}
+                  {formatPatientListName(c.patient)}
+                </p>
+                <p className="line-clamp-1 text-xs text-[color:var(--color-warm-500)]">
+                  {c.constraints?.treatmentType ?? "Treatment plan"}
                 </p>
                 <div className="flex items-center justify-between text-xs text-[color:var(--color-warm-500)]">
                   <Badge
@@ -162,6 +165,11 @@ export function CaseLibrary() {
           </li>
         ))}
       </ul>
+      {filtered.length === 0 && cases.length > 0 ? (
+        <p className="py-8 text-center text-sm text-[color:var(--color-warm-500)]">
+          No patients match this search. Try another name or clear filters.
+        </p>
+      ) : null}
     </div>
   );
 }

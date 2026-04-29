@@ -17,6 +17,7 @@ import { ReviewPreviewVersions } from "@/components/review/review-preview-versio
 import { ReviewStickyActions } from "@/components/review/review-sticky-actions";
 import { ReviewSuccessState } from "@/components/review/review-success-state";
 import { ReviewTopBar } from "@/components/review/review-top-bar";
+import { previewLinkDisplayPath } from "@/lib/public-app-url";
 import { useCasesStore, waitForCasesPersistWrites } from "@/lib/stores/cases";
 import { useGenerateForm } from "@/lib/stores/generate-form";
 import { downloadImageFromUrl } from "@/lib/download-image";
@@ -143,7 +144,7 @@ export default function CaseReviewPage(props: PageProps) {
   const allChecked = checklist.every(Boolean);
   const showSuccess = caseData ? caseData.approved : demoApproved;
 
-  const previewUrlDisplay = `smileai.app/preview/${effectiveCase.id}`;
+  const previewUrlDisplay = previewLinkDisplayPath(effectiveCase.id);
 
   const onSelectVersion = React.useCallback(
     (genId: string) => {
@@ -262,6 +263,9 @@ export default function CaseReviewPage(props: PageProps) {
                   onRefineBaseIdChange={setRefineBaseId}
                   onRefined={onRefinedPreview}
                   onBusyChange={setRefineBusy}
+                  heading="Optional feedback"
+                  description=""
+                  placeholder="Example: a little less bright, or slightly shorter front teeth."
                 />
               </div>
             ) : undefined

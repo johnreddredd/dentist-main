@@ -30,6 +30,7 @@ export function ReviewPreviewHero({
           beforeLabel="Before"
           afterLabel="After"
           className="w-full"
+          frameClassName="rounded-xl bg-[#F5F5F4]"
         />
       </div>
 

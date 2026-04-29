@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { PLANS } from "@/types";
 import { Check } from "lucide-react";
 
+import { CasesBackupCard } from "@/components/settings/CasesBackupCard";
+
 export default function SettingsPage() {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
@@ -14,6 +16,8 @@ export default function SettingsPage() {
           Practice details, team seats, and billing.
         </p>
       </div>
+
+      <CasesBackupCard />
 
       <Card>
         <CardHeader>

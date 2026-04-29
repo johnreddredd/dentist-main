@@ -1,18 +1,19 @@
-import { CaseLibrary } from "@/components/dashboard/CaseLibrary";
+import { PatientLibrary } from "@/components/dashboard/PatientLibrary";
 
 export default function CasesPage() {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-[color:var(--color-warm-900)]">
-          Case library
+          Patient library
         </h1>
         <p className="text-sm text-[color:var(--color-warm-500)]">
-          Every preview you&rsquo;ve generated — filter, review, share with
-          patients after approval.
+          Every preview in your office — search by patient name, chart #, or
+          contact info. Data stays on this device until you connect a practice
+          database.
         </p>
       </div>
-      <CaseLibrary />
+      <PatientLibrary />
     </div>
   );
 }

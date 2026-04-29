@@ -12,8 +12,10 @@ import {
   intrinsicEnamelIntegritySection,
   lowerTeethSection,
   outputSection,
+  perceptualCleanlinessVisualSection,
   postTreatmentOutcomeSection,
   preserveExactlySection,
+  toothShapeLockSection,
   treatmentIdentityLock,
   upperTeethSection,
 } from "./templates";
@@ -77,6 +79,8 @@ export function buildPrompt(
     "",
     intrinsicEnamelIntegritySection(),
     "",
+    toothShapeLockSection(),
+    "",
     incisalEdgePreservationSection(),
     "",
     clinicalOutcomeRealismSection(),
@@ -84,6 +88,8 @@ export function buildPrompt(
     preserveExactlySection(constraints.preservationRules),
     "",
     avoidSection(form.mode, constraints.forbiddenChanges),
+    "",
+    perceptualCleanlinessVisualSection(),
     "",
     outputSection(constraints.treatmentType),
   ].join("\n");

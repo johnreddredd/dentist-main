@@ -11,12 +11,16 @@ interface CasesState {
   updateCase: (id: string, patch: Partial<Case>) => void;
   removeCase: (id: string) => void;
   getCase: (id: string) => Case | undefined;
+  /** Replace entire library (e.g. restore backup). */
+  setCases: (cases: Case[]) => void;
+  /** Upsert by case id; imported cases listed first. */
+  mergeCases: (incoming: Case[]) => void;
 }
 
 type CasesPersisted = Pick<CasesState, "cases">;
 
 const PERSIST_NAME = "smileai-cases";
-const PERSIST_VERSION = 4;
+const PERSIST_VERSION = 5;
 
 /** IndexedDB via localforage — large base64 images exceed localStorage quota. */
 const casesIdb = localforage.createInstance({
@@ -81,6 +85,13 @@ export const useCasesStore = create<CasesState>()(
       removeCase: (id) =>
         set((s) => ({ cases: s.cases.filter((c) => c.id !== id) })),
       getCase: (id) => get().cases.find((c) => c.id === id),
+      setCases: (cases) => set({ cases: [...cases] }),
+      mergeCases: (incoming) =>
+        set((s) => {
+          const touched = new Set(incoming.map((c) => c.id));
+          const rest = s.cases.filter((c) => !touched.has(c.id));
+          return { cases: [...incoming, ...rest] };
+        }),
     }),
     {
       name: PERSIST_NAME,

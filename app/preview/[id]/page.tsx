@@ -1,9 +1,10 @@
+import { CasesHydrationBoundary } from "@/components/dashboard/CasesHydrationBoundary";
 import { PatientPreviewView } from "@/components/patient-preview/PatientPreviewView";
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function PatientPreviewPage({ params }: PageProps) {
-  return <PatientPreviewView params={params} />;
+export default function PatientPreviewPage() {
+  return (
+    <CasesHydrationBoundary>
+      <PatientPreviewView />
+    </CasesHydrationBoundary>
+  );
 }

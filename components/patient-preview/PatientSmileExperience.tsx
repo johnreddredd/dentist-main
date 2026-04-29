@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Check, Mail, Phone } from "lucide-react";
 import { BeforeAfterSlider } from "@/components/review/before-after-slider";
+import { OriginalAspectPhotoFrame } from "@/components/review/original-aspect-photo-frame";
 import { PATIENT_WHAT_LOOKS_GOOD } from "@/lib/patient-preview-copy";
 import { cn } from "@/lib/utils";
 
@@ -14,8 +15,9 @@ const MODES: { id: CompareMode; label: string }[] = [
   { id: "split", label: "Split" },
 ];
 
-const SPLIT_FRAME_INNER =
-  "relative aspect-[4/5] w-full cursor-ew-resize overflow-hidden rounded-2xl bg-[#1c1917] shadow-lg sm:aspect-[4/5] md:mx-auto md:max-h-[min(72vh,680px)] md:max-w-[90vw] lg:max-w-[880px] touch-pan-y";
+/** Frame follows original photo aspect; matches slider and single modes. */
+const COMPARE_FRAME_CLASS =
+  "patient-preview-frame bg-[#1c1917] ring-1 ring-black/5";
 
 export interface PatientShareContact {
   phoneDisplay: string;
@@ -87,44 +89,45 @@ export function PatientSmileExperience({
       <div className="relative mx-auto mt-8 w-full sm:mt-10">
         <div className="relative w-full">
           {!introDone ? (
-            <div className="patient-preview-frame relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#1c1917] shadow-lg sm:aspect-[4/5] md:mx-auto md:max-h-[min(72vh,680px)] md:max-w-[90vw] lg:max-w-[880px]">
+            <OriginalAspectPhotoFrame
+              beforeSrc={beforeSrc}
+              sizingClassName="max-h-[min(72vh,680px)]"
+              className={COMPARE_FRAME_CLASS}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={beforeSrc}
                 alt=""
-                className="patient-intro-layer-before absolute inset-0 size-full object-cover object-[center_38%]"
+                className="patient-intro-layer-before absolute inset-0 size-full object-contain object-center"
                 draggable={false}
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={afterSrc}
                 alt=""
-                className="patient-intro-layer-after absolute inset-0 size-full object-cover object-[center_38%]"
+                className="patient-intro-layer-after absolute inset-0 size-full object-contain object-center"
                 draggable={false}
               />
-              <div
-                className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-black/5"
-                aria-hidden
-              />
-            </div>
+            </OriginalAspectPhotoFrame>
           ) : (
             <>
               {mode === "split" ? (
-                <div className="patient-preview-frame w-full">
-                  <BeforeAfterSlider
-                    beforeSrc={beforeSrc}
-                    afterSrc={afterSrc}
-                    beforeLabel="Before"
-                    afterLabel="After"
-                    className="w-full"
-                    innerClassName={SPLIT_FRAME_INNER}
-                    hintText="Drag the handle to compare before and after"
-                  />
-                </div>
+                <BeforeAfterSlider
+                  beforeSrc={beforeSrc}
+                  afterSrc={afterSrc}
+                  beforeLabel="Before"
+                  afterLabel="After"
+                  className="w-full"
+                  frameClassName={cn(COMPARE_FRAME_CLASS, "md:max-w-[90vw] lg:max-w-[880px]")}
+                  hintText="Drag the handle to compare before and after"
+                />
               ) : (
-                <div
+                <OriginalAspectPhotoFrame
+                  beforeSrc={beforeSrc}
+                  sizingClassName="max-h-[min(72vh,680px)]"
                   className={cn(
-                    "patient-preview-frame relative aspect-[4/5] w-full overflow-hidden rounded-2xl bg-[#1c1917] shadow-lg sm:aspect-[4/5] md:mx-auto md:max-h-[min(72vh,680px)] md:max-w-[90vw] lg:max-w-[880px]",
+                    COMPARE_FRAME_CLASS,
+                    "md:max-w-[90vw] lg:max-w-[880px]",
                     mode === "after" && "patient-smile-focus",
                   )}
                 >
@@ -133,7 +136,7 @@ export function PatientSmileExperience({
                     src={beforeSrc}
                     alt=""
                     className={cn(
-                      "absolute inset-0 size-full object-cover object-[center_38%] transition-opacity duration-500 ease-out",
+                      "absolute inset-0 size-full object-contain object-center transition-opacity duration-500 ease-out",
                       mode === "before" ? "opacity-100" : "opacity-0",
                     )}
                     draggable={false}
@@ -143,15 +146,15 @@ export function PatientSmileExperience({
                     src={afterSrc}
                     alt=""
                     className={cn(
-                      "absolute inset-0 size-full object-cover object-[center_38%] transition-all duration-500 ease-out",
+                      "absolute inset-0 size-full object-contain object-center transition-opacity duration-500 ease-out",
                       mode === "after"
-                        ? "scale-[1.015] opacity-100 patient-after-pop"
-                        : "scale-100 opacity-0",
+                        ? "opacity-100 patient-after-pop"
+                        : "opacity-0",
                     )}
                     draggable={false}
                   />
-                  <div className="pointer-events-none absolute inset-0 rounded-2xl review-vignette" />
-                </div>
+                  <div className="pointer-events-none absolute inset-0 review-vignette" />
+                </OriginalAspectPhotoFrame>
               )}
 
               <div

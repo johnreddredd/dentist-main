@@ -205,6 +205,17 @@ export interface PreviewGeneration {
   dentistNote?: string;
 }
 
+/** Office / chart fields for the patient library (optional until captured at save or on case page). */
+export interface CasePatientRecord {
+  firstName: string;
+  lastName: string;
+  /** Chart #, MRN, or internal office ID */
+  patientId?: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+}
+
 export interface Case {
   id: string;
   userId: string;
@@ -216,6 +227,8 @@ export interface Case {
   selectedGenerationId?: string;
   /** Top 3 fixes Claude proposed after comparing original vs first-pass draft (applied in final image). */
   aiReviewerBullets?: string[];
+  /** Patient demographics for search and office records. */
+  patient?: CasePatientRecord;
   treatmentData: TreatmentFormData;
   constraints: TreatmentConstraints;
   assumption: AssumptionBox;

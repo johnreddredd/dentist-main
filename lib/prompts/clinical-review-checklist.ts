@@ -16,7 +16,7 @@ Clinical realism checklist — verify the AFTER draft mentally against BEFORE, t
 
 5) Gingiva — Papilla heights and zeniths consistent with new tooth positions; no uncanny scalpel-perfect tissue unless clearly an aspirational cosmetic case.
 
-6) Shade and surface texture — For alignment-focused outcomes, teeth should not look like full veneer bleaching unless the plan implies whitening; enamel texture should stay believable. Intrinsic enamel features (white spots, fluorosis, hypocalcification, opacity patterns) must not be smoothed away or “whitened off” unless the plan explicitly includes masking them. Incisal edges of anteriors: preserve irregularity, micro-chipping, and asymmetry from BEFORE; ortho must not straighten, flatten, or uniformize those edges.
+6) Shade and surface texture — For alignment-focused outcomes, teeth should not look like full veneer bleaching unless the plan implies whitening; enamel texture should stay believable. Intrinsic enamel features (white spots, fluorosis, hypocalcification, opacity patterns) must not be smoothed away or “whitened off” unless the plan explicitly includes masking them. Tooth shape lock: do not narrow, lengthen, widen, or symmetrize crowns for beauty; apparent differences from BEFORE should read as alignment/rotation, not sculpting. Incisal edges of anteriors: preserve irregularity, micro-chipping, and asymmetry from BEFORE; ortho must not straighten, flatten, or uniformize those edges.
 
 7) Identity — Same patient as BEFORE; facial and dental proportions age-appropriate; no swapped identity.
 

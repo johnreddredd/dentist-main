@@ -7,6 +7,9 @@ import type { GenerateRequest, GenerateResponse } from "@/types";
 
 export const runtime = "nodejs";
 
+/** Wall-clock budget for Gemini (+ optional Claude). Vercel: requires Pro+ (Hobby is 10s). @see https://vercel.com/docs/functions/configuring-functions/duration */
+export const maxDuration = 60;
+
 /**
  * Post–initial-generation: Claude vision review → 3 bullets → second Gemini edit.
  * OFF by default. Set to `true` to use first-pass + review + final again.

@@ -1,4 +1,5 @@
 import type { Case, TreatmentCategory, TreatmentFormData } from "@/types";
+import { formatPatientListName } from "@/lib/cases/patient-utils";
 
 const CATEGORY_LABEL: Record<TreatmentCategory, string> = {
   cosmetic: "Cosmetic",
@@ -10,8 +11,8 @@ const CATEGORY_LABEL: Record<TreatmentCategory, string> = {
 };
 
 export function teethSummarySegment(form: TreatmentFormData): string {
-  if (form.fullArch) return "32 teeth";
-  const nums = Object.entries(form.teeth)
+  if (form?.fullArch) return "32 teeth";
+  const nums = Object.entries(form?.teeth ?? {})
     .filter(([, st]) => st != null)
     .map(([k]) => Number(k))
     .filter((n) => Number.isFinite(n));
@@ -22,13 +23,24 @@ export function teethSummarySegment(form: TreatmentFormData): string {
 }
 
 export function buildCaseDecisionTitle(c: Case): string {
-  const catKey = c.treatmentData.category;
+  const treatmentType = c.constraints?.treatmentType ?? "";
+  const catKey = c.treatmentData?.category;
   const cat =
-    catKey != null ? CATEGORY_LABEL[catKey] : c.constraints.treatmentType.split(" ")[0] ?? "Treatment";
-  const mat = c.treatmentData.material ?? c.constraints.treatmentType;
+    catKey != null
+      ? CATEGORY_LABEL[catKey]
+      : treatmentType.split(" ")[0]?.trim() || "Treatment";
+  const mat =
+    (c.treatmentData?.material ?? "").trim() ||
+    treatmentType ||
+    "Plan";
   const teeth = teethSummarySegment(c.treatmentData);
-  const mode = c.mode.charAt(0).toUpperCase() + c.mode.slice(1) + " Mode";
-  return `${cat} — ${mat} — ${teeth} (${mode})`;
+  const modeLabel = (c.mode ?? "moderate") as Case["mode"];
+  const mode =
+    modeLabel.charAt(0).toUpperCase() + modeLabel.slice(1) + " Mode";
+  const core = `${cat} — ${mat} — ${teeth} (${mode})`;
+  const patientLine = formatPatientListName(c.patient);
+  if (patientLine === "Unnamed patient") return core;
+  return `${patientLine} · ${core}`;
 }
 
 export interface DecisionChip {
@@ -38,22 +50,22 @@ export interface DecisionChip {
 
 export function buildTreatmentSummaryChips(c: Case): DecisionChip[] {
   const treatment =
-    c.treatmentData.material?.trim() ||
-    c.constraints.treatmentType ||
+    c.treatmentData?.material?.trim() ||
+    c.constraints?.treatmentType ||
     "Plan";
+  const mode = (c.mode ?? "moderate") as Case["mode"];
+  const shape = c.treatmentData?.shape ?? "natural";
   return [
     { label: "Treatment", value: treatment },
     { label: "Teeth", value: teethSummarySegment(c.treatmentData) },
     {
       label: "Mode",
-      value: c.mode.charAt(0).toUpperCase() + c.mode.slice(1),
+      value: mode.charAt(0).toUpperCase() + mode.slice(1),
     },
-    { label: "Shade", value: `VITA ${c.treatmentData.shade}` },
+    { label: "Shade", value: `VITA ${c.treatmentData?.shade ?? "—"}` },
     {
       label: "Shape",
-      value:
-        c.treatmentData.shape.charAt(0).toUpperCase() +
-        c.treatmentData.shape.slice(1),
+      value: shape.charAt(0).toUpperCase() + shape.slice(1),
     },
   ];
 }
@@ -91,7 +103,7 @@ export function buildConstraintsScannable(c: Case): string[] {
     if (f.trim()) out.push(f);
   }
 
-  const preserve = c.constraints.preservationRules ?? [];
+  const preserve = c.constraints?.preservationRules ?? [];
   for (const p of preserve) {
     if (out.length >= 5) break;
     if (p.trim() && !out.includes(p)) out.push(p);

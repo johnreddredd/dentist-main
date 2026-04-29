@@ -8,7 +8,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     <input
       ref={ref}
       className={cn(
-        "h-11 w-full rounded-xl border border-[color:var(--color-warm-200)] bg-white px-3.5 text-sm",
+        // text-base (16px): prevents iOS Safari from auto-zooming the page on focus
+        "h-11 w-full rounded-xl border border-[color:var(--color-warm-200)] bg-white px-3.5 text-base",
         "placeholder:text-[color:var(--color-warm-400)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-teal-600)]",
         "disabled:opacity-50",

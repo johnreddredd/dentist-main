@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  FolderOpen,
+  Users,
   Settings,
   Sparkles,
   BarChart3,
@@ -14,7 +14,7 @@ import { useGenerateForm } from "@/lib/stores/generate-form";
 
 const LINKS = [
   { href: "/generate", label: "New Preview", icon: Sparkles, primary: true },
-  { href: "/cases", label: "Case Library", icon: FolderOpen },
+  { href: "/cases", label: "Patient Library", icon: Users },
   { href: "/stats", label: "Stats", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

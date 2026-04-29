@@ -3,45 +3,27 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 import type { ToothNumber, ToothState } from "@/types";
-import { UPPER_TEETH, LOWER_TEETH } from "@/lib/constraints/constants";
+import {
+  UPPER_TEETH,
+  LOWER_TEETH,
+  TOOTH_NUMBERS,
+} from "@/lib/constraints/constants";
 import { useGenerateForm } from "@/lib/stores/generate-form";
 import { Button } from "@/components/ui/button";
 
-const STATE_CYCLE: (ToothState | null)[] = [
-  null,
-  "treatment",
-  "missing",
-  "destroyed",
-  "healthy",
-];
-
 function stateColor(state: ToothState | undefined): string {
-  switch (state) {
-    case "missing":
-    case "destroyed":
-      return "bg-red-500 text-white border-red-600";
-    case "treatment":
-      return "bg-amber-400 text-amber-900 border-amber-500";
-    case "healthy":
-      return "bg-emerald-500 text-white border-emerald-600";
-    default:
-      return "bg-white text-[color:var(--color-warm-600)] border-[color:var(--color-warm-300)] hover:border-[color:var(--color-teal-500)]";
+  if (state === "treatment") {
+    return "bg-amber-400 text-amber-900 border-amber-500";
   }
+  return "bg-white text-[color:var(--color-warm-600)] border-[color:var(--color-warm-300)] hover:border-[color:var(--color-teal-500)]";
 }
 
-function stateLabel(state: ToothState | undefined): string {
-  switch (state) {
-    case "missing":
-      return "Missing";
-    case "destroyed":
-      return "Destroyed";
-    case "treatment":
-      return "Needs treatment";
-    case "healthy":
-      return "Healthy";
-    default:
-      return "Unmarked";
-  }
+function archAllTreatment(
+  teeth: Record<number, ToothState | undefined>,
+  arch: readonly ToothNumber[],
+): boolean {
+  if (arch.length === 0) return false;
+  return arch.every((n) => teeth[n] === "treatment");
 }
 
 export function ToothChart() {
@@ -49,20 +31,25 @@ export function ToothChart() {
   const setToothState = useGenerateForm((s) => s.setToothState);
   const setManyToothStates = useGenerateForm((s) => s.setManyToothStates);
 
-  function selectAllUpper() {
-    setManyToothStates(UPPER_TEETH, "treatment");
+  function toggleTooth(n: ToothNumber) {
+    if (teeth[n] === "treatment") {
+      setToothState(n, null);
+    } else {
+      setToothState(n, "treatment");
+    }
   }
 
-  function selectAllLower() {
-    setManyToothStates(LOWER_TEETH, "treatment");
+  function toggleArch(arch: readonly ToothNumber[]) {
+    if (archAllTreatment(teeth, arch)) {
+      setManyToothStates(arch, null);
+    } else {
+      setManyToothStates(arch, "treatment");
+    }
   }
 
-  function cycle(n: ToothNumber) {
-    const current = teeth[n];
-    const idx = STATE_CYCLE.indexOf(current ?? null);
-    const next = STATE_CYCLE[(idx + 1) % STATE_CYCLE.length];
-    setToothState(n, next);
-  }
+  const upperAll = archAllTreatment(teeth, UPPER_TEETH);
+  const lowerAll = archAllTreatment(teeth, LOWER_TEETH);
+  const fullAll = archAllTreatment(teeth, TOOTH_NUMBERS);
 
   return (
     <div className="space-y-6 rounded-2xl border border-[color:var(--color-warm-200)] bg-white p-6">
@@ -72,10 +59,22 @@ export function ToothChart() {
             Teeth (Universal #1–32)
           </p>
           <p className="text-xs text-[color:var(--color-warm-500)]">
-            Tap a tooth to cycle: Unmarked → Needs treatment → Missing → Destroyed → Healthy
+            Tap a tooth to select it for this plan, tap again to deselect. Use
+            the arch buttons to select or clear a whole arch at once.
           </p>
         </div>
-        <Legend />
+        <div className="flex flex-col items-end gap-2 sm:flex-row sm:items-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-lg border-[color:var(--color-warm-200)] text-xs"
+            onClick={() => toggleArch(TOOTH_NUMBERS)}
+          >
+            {fullAll ? "Clear all teeth" : "Select all teeth"}
+          </Button>
+          <Legend />
+        </div>
       </div>
 
       {/* UPPER */}
@@ -89,9 +88,9 @@ export function ToothChart() {
             variant="outline"
             size="sm"
             className="h-8 rounded-lg border-[color:var(--color-warm-200)] text-xs"
-            onClick={selectAllUpper}
+            onClick={() => toggleArch(UPPER_TEETH)}
           >
-            Select all upper
+            {upperAll ? "Clear upper" : "Select all upper"}
           </Button>
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -100,7 +99,7 @@ export function ToothChart() {
               key={n}
               n={n}
               state={teeth[n]}
-              onClick={() => cycle(n)}
+              onClick={() => toggleTooth(n)}
             />
           ))}
         </div>
@@ -117,9 +116,9 @@ export function ToothChart() {
             variant="outline"
             size="sm"
             className="h-8 rounded-lg border-[color:var(--color-warm-200)] text-xs"
-            onClick={selectAllLower}
+            onClick={() => toggleArch(LOWER_TEETH)}
           >
-            Select all lower
+            {lowerAll ? "Clear lower" : "Select all lower"}
           </Button>
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -128,7 +127,7 @@ export function ToothChart() {
               key={n}
               n={n}
               state={teeth[n]}
-              onClick={() => cycle(n)}
+              onClick={() => toggleTooth(n)}
             />
           ))}
         </div>
@@ -150,7 +149,7 @@ function ToothButton({
     <button
       type="button"
       onClick={onClick}
-      title={`Tooth #${n} — ${stateLabel(state)}`}
+      title={`Tooth #${n} — ${state === "treatment" ? "Selected" : "Not selected"}`}
       className={cn(
         "relative flex h-12 w-10 items-center justify-center rounded-md border text-xs font-semibold transition-all",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-teal-600)]",
@@ -164,9 +163,8 @@ function ToothButton({
 
 function Legend() {
   const items: { label: string; cls: string }[] = [
-    { label: "Healthy", cls: "bg-emerald-500" },
-    { label: "Treatment", cls: "bg-amber-400" },
-    { label: "Missing", cls: "bg-red-500" },
+    { label: "Not selected", cls: "bg-white border border-[color:var(--color-warm-300)]" },
+    { label: "In plan", cls: "bg-amber-400" },
   ];
   return (
     <div className="hidden gap-3 text-xs text-[color:var(--color-warm-600)] sm:flex">

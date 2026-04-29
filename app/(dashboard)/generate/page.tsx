@@ -13,7 +13,8 @@ import { ModeSelector } from "@/components/form/ModeSelector";
 import { SummaryPanel } from "@/components/form/SummaryPanel";
 import { useGenerateForm } from "@/lib/stores/generate-form";
 import { useCasesStore, waitForCasesPersistWrites } from "@/lib/stores/cases";
-import type { Case, GenerateResponse } from "@/types";
+import type { Case, CasePatientRecord, GenerateResponse } from "@/types";
+import { PatientIntakeModal } from "@/components/patient/PatientIntakeModal";
 import { createInitialGeneration } from "@/lib/cases/preview-history";
 
 export default function GeneratePage() {
@@ -28,6 +29,8 @@ export default function GeneratePage() {
 
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [pendingCase, setPendingCase] = React.useState<Case | null>(null);
+  const [intakeOpen, setIntakeOpen] = React.useState(false);
 
   async function onGenerate() {
     setSubmitting(true);
@@ -65,14 +68,35 @@ export default function GeneratePage() {
         patientAccepted: "pending",
         createdAt: new Date().toISOString(),
       };
-      addCase(newCase);
-      await waitForCasesPersistWrites();
-      router.push(`/cases/${data.caseId}`);
+      setPendingCase(newCase);
+      setIntakeOpen(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function finishNav(id: string) {
+    void waitForCasesPersistWrites().then(() => router.push(`/cases/${id}`));
+  }
+
+  function onIntakeSave(patient: CasePatientRecord) {
+    if (!pendingCase) return;
+    const id = pendingCase.id;
+    addCase({ ...pendingCase, patient });
+    setPendingCase(null);
+    setIntakeOpen(false);
+    finishNav(id);
+  }
+
+  function onIntakeSkip() {
+    if (!pendingCase) return;
+    const id = pendingCase.id;
+    addCase(pendingCase);
+    setPendingCase(null);
+    setIntakeOpen(false);
+    finishNav(id);
   }
 
   return (
@@ -185,6 +209,11 @@ export default function GeneratePage() {
           </Button>
         )}
       </div>
+      <PatientIntakeModal
+        open={intakeOpen}
+        onSave={onIntakeSave}
+        onSkip={onIntakeSkip}
+      />
     </div>
   );
 }

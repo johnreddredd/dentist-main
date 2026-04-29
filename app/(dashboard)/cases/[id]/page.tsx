@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { use } from "react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -13,7 +13,8 @@ import { CasePreviewHero, type PreviewViewMode } from "@/components/case/CasePre
 import { CasePreviewDecision } from "@/components/case/CasePreviewDecision";
 import { CaseTrustPanel } from "@/components/case/CaseTrustPanel";
 import { CaseDecisionActions } from "@/components/case/CaseDecisionActions";
-import { CasePatientShareCard } from "@/components/case/CasePatientShareCard";
+import { CasePatientRecordCard } from "@/components/case/CasePatientRecordCard";
+import CasePatientShareCard from "@/components/case/CasePatientShareCard";
 import {
   appendRefinedGeneration,
   createInitialGeneration,
@@ -24,12 +25,15 @@ import { ReviewRefinePanel } from "@/components/review/review-refine-panel";
 import { useCasesStore, waitForCasesPersistWrites } from "@/lib/stores/cases";
 import type { GenerateResponse } from "@/types";
 
-interface PageProps {
-  params: Promise<{ id: string }>;
+function routeCaseId(raw: string | string[] | undefined): string {
+  if (typeof raw === "string") return raw;
+  if (Array.isArray(raw) && raw[0]) return raw[0];
+  return "";
 }
 
-export default function CaseDetailPage({ params }: PageProps) {
-  const { id } = use(params);
+export default function CaseDetailPage() {
+  const params = useParams<{ id?: string | string[] }>();
+  const id = routeCaseId(params.id);
   const caseData = useCasesStore((s) => s.cases.find((c) => c.id === id));
   const updateCase = useCasesStore((s) => s.updateCase);
 
@@ -165,7 +169,7 @@ export default function CaseDetailPage({ params }: PageProps) {
               href="/cases"
               className="mt-4 inline-flex h-11 items-center justify-center rounded-xl border border-[#E7E5E4] bg-white px-4 text-sm font-semibold text-[#0F172A] shadow-sm transition-colors hover:bg-[#FAFAF9]"
             >
-              Back to Case Library
+              Back to patient library
             </Link>
           </CardContent>
         </Card>
@@ -212,9 +216,8 @@ export default function CaseDetailPage({ params }: PageProps) {
                     Adjust &amp; regenerate from your note
                   </h3>
                   <p className="mt-0.5 max-w-xl text-xs text-[#64748B]">
-                    Describe the change in the box below. Your text is turned
-                    into a precise image instruction, then a new preview is
-                    generated—same flow as on the review page.
+                    Short note below — we’ll generate an updated preview from
+                    your current image.
                   </p>
                 </div>
                 <button
@@ -240,6 +243,9 @@ export default function CaseDetailPage({ params }: PageProps) {
                 onRefineBaseIdChange={setRefineBaseId}
                 onRefined={onRefinedFromNote}
                 onBusyChange={setRefineBusy}
+                heading="What to adjust"
+                description=""
+                placeholder="Example: shorten centrals slightly; keep gums natural."
               />
             </div>
           ) : null}
@@ -251,13 +257,19 @@ export default function CaseDetailPage({ params }: PageProps) {
           ) : null}
         </div>
 
-        <CaseTrustPanel
-          caseData={caseRow}
-          patientAccepted={caseRow.patientAccepted}
-          onPatientOutcome={(v) =>
-            updateCase(caseRow.id, { patientAccepted: v })
-          }
-        />
+        <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
+          <CasePatientRecordCard
+            caseId={caseRow.id}
+            patient={caseRow.patient}
+          />
+          <CaseTrustPanel
+            caseData={caseRow}
+            patientAccepted={caseRow.patientAccepted}
+            onPatientOutcome={(v) =>
+              updateCase(caseRow.id, { patientAccepted: v })
+            }
+          />
+        </div>
       </div>
 
       <CasePatientShareCard caseId={caseRow.id} className="mt-8 lg:mt-10" />

@@ -1,9 +1,11 @@
 "use client";
 
-import * as React from "react";
-import { PatientPreviewTopBar } from "@/components/patient-preview/PatientPreviewTopBar";
-import { PatientSmileExperience } from "@/components/patient-preview/PatientSmileExperience";
-import { PATIENT_PREVIEW_MOCK_CONTACT } from "@/lib/patient-preview-copy";
+import { useParams } from "next/navigation";
+import {
+  PatientSmileExperience,
+  type PatientShareContact,
+} from "@/components/patient-preview/PatientSmileExperience";
+import { ensurePreviewGenerations } from "@/lib/cases/preview-history";
 import { useCasesStore } from "@/lib/stores/cases";
 import type { Case } from "@/types";
 
@@ -50,25 +52,59 @@ function demoCase(id: string): Case {
   };
 }
 
-interface PatientPreviewViewProps {
-  params: Promise<{ id: string }>;
+function routeId(raw: string | string[] | undefined): string {
+  if (typeof raw === "string") return raw;
+  if (Array.isArray(raw) && raw[0]) return raw[0];
+  return "";
 }
 
-export function PatientPreviewView({ params }: PatientPreviewViewProps) {
-  const { id } = React.use(params);
+/** When both exist, show Call / Email under the preview (shared link on this device). */
+function shareContactFromPatient(c: Case): PatientShareContact | undefined {
+  const phone = c.patient?.phone?.trim();
+  const email = c.patient?.email?.trim();
+  if (!phone || !email) return undefined;
+  const digits = phone.replace(/\D/g, "");
+  const phoneTel =
+    digits.length === 10
+      ? `+1${digits}`
+      : phone.startsWith("+")
+        ? phone.replace(/\s/g, "")
+        : digits
+          ? `+${digits}`
+          : phone;
+  return {
+    phoneDisplay: phone,
+    phoneTel,
+    email,
+  };
+}
+
+/**
+ * Patient-facing `/preview/[id]` share: full compare experience + reassurance +
+ * optional practice contact (same full experience as in-clinic review, without checklist / refine tools).
+ */
+export function PatientPreviewView() {
+  const params = useParams();
+  const id = routeId(params?.id);
   const storeCase = useCasesStore((s) => s.cases.find((c) => c.id === id));
   const c = storeCase ?? demoCase(id);
 
+  const { generations, selectedId } = ensurePreviewGenerations(c);
+  const selectedGen = generations.find((g) => g.id === selectedId);
+  const afterSrc =
+    selectedGen?.imageUrl ??
+    c.generatedImageUrl ??
+    c.originalPhotoUrl;
   const beforeSrc = c.originalPhotoUrl;
-  const afterSrc = c.generatedImageUrl ?? c.originalPhotoUrl;
+  const shareContact = shareContactFromPatient(c);
 
   return (
-    <div className="min-h-screen bg-white text-[#0F172A]">
-      <PatientPreviewTopBar />
+    <div className="min-h-dvh bg-[color:var(--color-warm-50)]">
       <PatientSmileExperience
         beforeSrc={beforeSrc}
         afterSrc={afterSrc}
-        shareContact={PATIENT_PREVIEW_MOCK_CONTACT}
+        shareContact={shareContact}
+        mainClassName="max-w-5xl pb-16 pt-6 sm:pt-10"
       />
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentType } from "react";
 import { AlertTriangle, Check, Gauge, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Mode } from "@/types";
@@ -8,10 +9,11 @@ import { useGenerateForm } from "@/lib/stores/generate-form";
 interface ModeCard {
   id: Mode;
   title: string;
+  hollywoodLabel?: string;
   subtitle: string;
-  tier: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  /** Shade cap + one-line outcome. */
+  summary: string;
+  icon: ComponentType<{ className?: string }>;
   accent: string;
   warning?: string;
 }
@@ -20,33 +22,29 @@ const CARDS: ModeCard[] = [
   {
     id: "conservative",
     title: "Conservative",
-    subtitle: "Realistic outcome I can deliver",
-    tier: "$12–15K budget restorative tier",
-    description:
-      "VITA A3 shade. Preserves imperfections, age-appropriate. Natural variation, slight asymmetry maintained.",
+    subtitle: "Closest to natural — everyday restorative look.",
+    summary: "VITA A3 max · keeps character & slight asymmetry.",
     icon: Check,
     accent: "from-emerald-50 to-white",
   },
   {
     id: "moderate",
     title: "Moderate",
-    subtitle: "Clean aesthetic improvement",
-    tier: "$18–25K mid-tier restorative",
-    description:
-      "VITA A2 shade. Clean natural white with subtle variation. Quality dentistry aesthetic.",
+    subtitle: "Bright, believable upgrade — not “Hollywood.”",
+    summary: "VITA A2 max · clean white, still looks like real teeth.",
     icon: Gauge,
     accent: "from-[color:var(--color-teal-50)] to-white",
   },
   {
     id: "aspirational",
     title: "Aspirational",
-    subtitle: "Best-case Hollywood transformation",
-    tier: "$40–60K All-on-4 / full zirconia",
-    description:
-      "VITA BL1 shade. Uniform polished prosthetic. Auto-adds disclaimer overlay.",
+    hollywoodLabel: "Hollywood",
+    subtitle: "Full smile makeover / red-carpet territory.",
+    summary: "VITA BL1 max · even, polished look (may read prosthetic).",
     icon: Sparkles,
     accent: "from-amber-50 to-white",
-    warning: "Auto-adds disclaimer overlay — premium full-arch work required.",
+    warning:
+      "Shows a stronger patient disclaimer — matches big multidisciplinary cases.",
   },
 ];
 
@@ -73,7 +71,7 @@ export function ModeSelector() {
                 : "border-[color:var(--color-warm-200)]",
             )}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div
                 className={cn(
                   "inline-flex size-8 items-center justify-center rounded-lg",
@@ -87,21 +85,23 @@ export function ModeSelector() {
               <p className="text-lg font-semibold text-[color:var(--color-warm-900)]">
                 {card.title}
               </p>
-              {selected && (
+              {card.hollywoodLabel ? (
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">
+                  {card.hollywoodLabel}
+                </span>
+              ) : null}
+              {selected ? (
                 <span className="ml-auto rounded-full bg-[color:var(--color-teal-700)] px-2 py-0.5 text-xs font-medium text-white">
                   Selected
                 </span>
-              )}
+              ) : null}
             </div>
 
-            <p className="text-sm font-medium text-[color:var(--color-warm-700)]">
+            <p className="text-sm font-medium text-[color:var(--color-warm-800)] leading-snug">
               {card.subtitle}
             </p>
-            <p className="text-sm text-[color:var(--color-warm-600)]">
-              {card.description}
-            </p>
-            <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-teal-800)]">
-              {card.tier}
+            <p className="text-sm text-[color:var(--color-warm-600)] leading-snug">
+              {card.summary}
             </p>
 
             {card.warning && (

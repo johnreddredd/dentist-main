@@ -37,8 +37,10 @@ Your job is ONLY to:
 - Keep every clinical constraint: allowed changes, forbidden changes, and preservation rules must remain equivalent in meaning
 - You MUST keep all section headers and the TREATMENT IDENTITY LOCK block; do not delete or relax constraints
 - Keep the POST-TREATMENT OUTCOME (CRITICAL) block; it must remain at least as strict about finished results and no fixed braces/hardware — including OCCLUSION / BITE and OCCLUSION REALISM LOCK lines when present
-- Keep the INCISAL EDGE PRESERVATION (CRITICAL) block verbatim in meaning; do not relax or delete it
+- Keep the TOOTH SHAPE LOCK (CRITICAL) block verbatim in meaning; do not relax or delete it
+- Keep the INCISAL EDGE PRESERVATION (CRITICAL) and INCISAL EDGE NON-UNIFORMITY (CRITICAL) blocks verbatim in meaning; do not relax or delete them
 - Keep the CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL) block verbatim in meaning; do not relax, delete, or idealize away its rules
+- Keep the PERCEPTUAL CLEANLINESS (VISUAL ONLY) block verbatim in meaning; do not relax or delete it
 - Keep the INTRINSIC ENAMEL FEATURES (CRITICAL) block verbatim in meaning; do not relax or delete it
 - Do NOT add new teeth, materials, or procedures that are not already implied
 - Do NOT add marketing language

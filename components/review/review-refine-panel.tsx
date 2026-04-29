@@ -7,11 +7,11 @@ import type { PreviewGeneration, RefinePreviewResponse } from "@/types";
 
 const MAX_NOTES = 1000;
 
-const DEFAULT_TITLE = "What should change?";
-const DEFAULT_DESCRIPTION =
-  "Before you type: use plain language and keep it clear and simple. Name one or two concrete visuals to adjust—shade, tooth length or shape, gum line, spacing, symmetry, lighting, etc. Short, specific phrases work best. Your message is turned into a precise image-edit instruction, then a new preview is generated. You can switch between versions later.";
+const DEFAULT_TITLE = "Adjustment note";
+/** Kept empty by default — use a short `heading` + `placeholder` at call sites instead of a wall of text. */
+const DEFAULT_DESCRIPTION = "";
 const DEFAULT_PLACEHOLDER =
-  "Example: Slightly shorten the two front teeth and warm the shade a little—keep gums natural.";
+  "Example: Slightly warmer shade, or a small tweak to front tooth length.";
 const DEFAULT_SUBMIT_LABEL = "Apply & generate";
 
 interface ReviewRefinePanelProps {
@@ -27,8 +27,6 @@ interface ReviewRefinePanelProps {
   description?: string;
   placeholder?: string;
   submitLabel?: string;
-  /** Short line explaining text → prompt → image (set false to hide). */
-  showPipelineHint?: boolean;
 }
 
 export function ReviewRefinePanel({
@@ -43,7 +41,6 @@ export function ReviewRefinePanel({
   description = DEFAULT_DESCRIPTION,
   placeholder = DEFAULT_PLACEHOLDER,
   submitLabel = DEFAULT_SUBMIT_LABEL,
-  showPipelineHint = true,
 }: ReviewRefinePanelProps) {
   const [notes, setNotes] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
@@ -140,14 +137,9 @@ export function ReviewRefinePanel({
       >
         {heading}
       </label>
-      <p className="mt-1.5 text-left text-xs leading-relaxed text-[#64748B]">
-        {description}
-      </p>
-      {showPipelineHint ? (
-        <p className="mt-2 rounded-lg bg-[#F8FAFC] px-2.5 py-2 text-left text-[11px] leading-snug text-[#64748B] ring-1 ring-[#E2E8F0]">
-          <span className="font-medium text-[#475569]">How it works:</span>{" "}
-          your text → a tight prompt for the image model → new preview (same
-          patient photo as reference).
+      {description.trim() ? (
+        <p className="mt-1.5 text-left text-xs leading-relaxed text-[#64748B]">
+          {description}
         </p>
       ) : null}
       <textarea
@@ -157,7 +149,7 @@ export function ReviewRefinePanel({
         rows={4}
         disabled={pending}
         placeholder={placeholder}
-        className="mt-3 w-full resize-y rounded-xl border border-[#E7E5E4] bg-[#FAFAF9] px-3 py-2.5 text-sm text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20 disabled:opacity-60"
+        className="mt-3 w-full resize-y rounded-xl border border-[#E7E5E4] bg-[#FAFAF9] px-3 py-2.5 text-base text-[#0F172A] placeholder:text-[#94A3B8] focus:border-[#0F766E] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20 disabled:opacity-60"
       />
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
         <span
