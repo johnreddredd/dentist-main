@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useCasesStore } from "@/lib/stores/cases";
+import { useGenerateForm } from "@/lib/stores/generate-form";
 import { formatRelative } from "@/lib/utils";
 import type { Mode, TreatmentCategory } from "@/types";
 
@@ -54,6 +55,7 @@ export function CaseLibrary() {
         </p>
         <Link
           href="/generate"
+          onClick={() => useGenerateForm.getState().reset()}
           className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[color:var(--color-teal-700)] px-5 text-sm font-medium text-white hover:bg-[color:var(--color-teal-800)]"
         >
           <Sparkles className="size-4" /> Generate a preview

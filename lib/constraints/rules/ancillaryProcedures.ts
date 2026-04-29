@@ -14,6 +14,7 @@ export interface AncillaryResult {
 export function evaluateAncillaryProcedures(
   form: TreatmentFormData,
 ): AncillaryResult {
+  const allowedChanges: string[] = [];
   const forbiddenChanges: string[] = [];
   const preservationRules: string[] = [];
   const issues: Issue[] = [];
@@ -38,7 +39,19 @@ export function evaluateAncillaryProcedures(
 
   // Spec rule 9 — original bite/arch form preserved unless treatment requires otherwise.
   const archChangeExpected =
-    form.category === "alignment" || form.category === "makeover";
+    form.category === "alignment" ||
+    form.category === "makeover" ||
+    (form.orthoSelected && form.category !== "whitening");
+
+  if (
+    form.orthoSelected &&
+    form.category !== "whitening" &&
+    form.category !== "alignment"
+  ) {
+    allowedChanges.push(
+      "Orthodontic alignment, arch coordination, and bite/occlusal improvement in the visible arches where indicated — plausible appliance-off finishing (no brackets/wires)",
+    );
+  }
 
   if (!archChangeExpected) {
     forbiddenChanges.push(
@@ -54,5 +67,8 @@ export function evaluateAncillaryProcedures(
     "All teeth not explicitly marked for treatment remain unchanged",
   );
 
-  return { partial: { forbiddenChanges, preservationRules }, issues };
+  return {
+    partial: { allowedChanges, forbiddenChanges, preservationRules },
+    issues,
+  };
 }

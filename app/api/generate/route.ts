@@ -1,25 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateTreatmentConstraints } from "@/lib/constraints";
 import { buildAssumptionBox, buildPrompt } from "@/lib/prompts";
-import { generateImage } from "@/lib/api/gemini";
-import { polishPrompt } from "@/lib/api/claude";
+import { generateImage, refinePreviewImage } from "@/lib/api/gemini";
+import { polishPrompt, reviewInitialDentalPreview } from "@/lib/api/claude";
 import type { GenerateRequest, GenerateResponse } from "@/types";
 
 export const runtime = "nodejs";
 
 /**
+ * Post–initial-generation: Claude vision review → 3 bullets → second Gemini edit.
+ * OFF by default. Set to `true` to use first-pass + review + final again.
+ * You can also set env `SMILEAI_POST_INITIAL_REVIEW=true` without editing this file.
+ */
+const POST_INITIAL_REVIEW_PIPELINE_IN_CODE = false;
+
+const runPostInitialReview =
+  POST_INITIAL_REVIEW_PIPELINE_IN_CODE ||
+  process.env.SMILEAI_POST_INITIAL_REVIEW === "true";
+
+/**
  * POST /api/generate
  *
- * Pipeline (matches the build-order doc):
- *   1. Parse form (no auth yet — Supabase layer will add it).
- *   2. Constraint engine runs first.
- *   3. Prompt constructor builds the master prompt (w/ TREATMENT IDENTITY LOCK).
- *   3b. If ANTHROPIC_API_KEY is set, Claude polishes wording (no constraint drift).
- *   4. Gemini (mock) returns an image URL.
- *   5. Assumption box is built deterministically.
+ * Pipeline:
+ *   1. Constraint engine → prompt constructor → optional Claude text polish.
+ *   2. Gemini: first-pass outcome image from patient photo + prompt.
+ *   3. (Optional) Claude (vision): before first, after second → top 3 fix bullets.
+ *   4. (Optional) Gemini: edit draft using bullets + original → final image.
+ *   5. Assumption box from engine (unchanged).
  *
- * In mock mode (no GOOGLE_APPLICATION_CREDENTIALS), the "generated" image
- * is the input photo so the full UI flow is testable end-to-end.
+ * When steps 3–4 are off, `generatedImageUrl` is the first-pass image; `reviewerBullets` is [].
  */
 export async function POST(req: NextRequest) {
   let body: GenerateRequest;
@@ -40,7 +49,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 1 — constraint engine (always before prompt construction)
   const engine = evaluateTreatmentConstraints(form);
 
   const hardErrors = engine.issues.filter((i) => i.severity === "error");
@@ -51,32 +59,60 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // 2 — prompt constructor
   const { prompt: basePrompt } = buildPrompt(form, engine.constraints);
-
-  // 3 — optional Claude polish (same engine output; wording only)
   const prompt = await polishPrompt({ prompt: basePrompt });
-
-  // 4 — assumption box (from structured engine + form, not from polished text)
   const assumption = buildAssumptionBox(form, engine.constraints);
 
-  // 5 — call image model (mock in dev)
-  const image = await generateImage({
+  const draft = await generateImage({
     photoDataUrl: form.photoDataUrl,
     prompt,
   });
+
+  let generatedImageUrl = draft.imageUrl;
+  let reviewerBullets: string[] = [];
+  let draftImageUrl: string | undefined;
+  let generationTimeMs = draft.generationTimeMs;
+  let modelVersion = draft.modelVersion;
+
+  if (runPostInitialReview) {
+    const review = await reviewInitialDentalPreview({
+      originalDataUrl: form.photoDataUrl,
+      draftPreviewDataUrl: draft.imageUrl,
+    });
+
+    const editPrompt = `An expert clinical reviewer compared the original patient photo to this first-pass AI dental preview. Apply ALL THREE improvements below to the first image (the preview). Use the second image only for facial identity reference — preserve non-dental features unless a change is required to integrate the dental work.
+
+1. ${review.bullets[0]}
+2. ${review.bullets[1]}
+3. ${review.bullets[2]}`;
+
+    const final = await refinePreviewImage({
+      previewDataUrl: draft.imageUrl,
+      originalDataUrl: form.photoDataUrl,
+      editPrompt,
+    });
+
+    generatedImageUrl = final.imageUrl;
+    reviewerBullets = [...review.bullets];
+    draftImageUrl = draft.imageUrl;
+    generationTimeMs =
+      draft.generationTimeMs + review.reviewTimeMs + final.generationTimeMs;
+    modelVersion = `${draft.modelVersion}→review→${final.modelVersion}`;
+  }
 
   const caseId = crypto.randomUUID();
 
   const response: GenerateResponse = {
     caseId,
-    generatedImageUrl: image.imageUrl,
+    generatedImageUrl,
+    draftImageUrl,
+    reviewerBullets,
     prompt,
     constraints: engine.constraints,
     assumption,
     issues: engine.issues,
-    generationTimeMs: image.generationTimeMs,
-    modelVersion: image.modelVersion,
+    generationTimeMs,
+    modelVersion,
   };
 
   return NextResponse.json(response, { status: 200 });

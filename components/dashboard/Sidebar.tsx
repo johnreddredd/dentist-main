@@ -10,10 +10,11 @@ import {
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useGenerateForm } from "@/lib/stores/generate-form";
 
 const LINKS = [
-  { href: "/generate", label: "New preview", icon: Sparkles, primary: true },
-  { href: "/cases", label: "Case library", icon: FolderOpen },
+  { href: "/generate", label: "New Preview", icon: Sparkles, primary: true },
+  { href: "/cases", label: "Case Library", icon: FolderOpen },
   { href: "/stats", label: "Stats", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -22,7 +23,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-[color:var(--color-warm-200)] bg-white p-4 lg:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-[#E7E5E4] bg-[#F5F5F4] p-4 lg:flex">
       <Link
         href="/"
         className="mb-6 flex items-center gap-2 rounded-xl px-2 py-2"
@@ -48,13 +49,18 @@ export function Sidebar() {
             <Link
               key={l.href}
               href={l.href}
+              onClick={
+                l.href === "/generate"
+                  ? () => useGenerateForm.getState().reset()
+                  : undefined
+              }
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 active
-                  ? "bg-[color:var(--color-teal-50)] text-[color:var(--color-teal-800)]"
+                  ? "bg-white text-[#0F766E] shadow-sm ring-1 ring-[#E7E5E4]"
                   : l.primary
                     ? "bg-[color:var(--color-teal-700)] text-white hover:bg-[color:var(--color-teal-800)]"
-                    : "text-[color:var(--color-warm-700)] hover:bg-[color:var(--color-warm-100)]",
+                    : "text-[#57534E] hover:bg-white/70",
               )}
             >
               <Icon className="size-4" />

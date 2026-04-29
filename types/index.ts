@@ -195,11 +195,27 @@ export interface AssumptionBox {
 
 // ---------- Case / generation persistence ----------
 
+/** One saved AI preview image for a case (initial generate or a dentist tweak). */
+export interface PreviewGeneration {
+  id: string;
+  imageUrl: string;
+  createdAt: string;
+  label: string;
+  /** Dentist note that produced this version (refine flow). */
+  dentistNote?: string;
+}
+
 export interface Case {
   id: string;
   userId: string;
   originalPhotoUrl: string;
   generatedImageUrl: string | null;
+  /** History of previews; `generatedImageUrl` should match the selected generation. */
+  previewGenerations?: PreviewGeneration[];
+  /** Which generation is shown in the app and sent to patients. */
+  selectedGenerationId?: string;
+  /** Top 3 fixes Claude proposed after comparing original vs first-pass draft (applied in final image). */
+  aiReviewerBullets?: string[];
   treatmentData: TreatmentFormData;
   constraints: TreatmentConstraints;
   assumption: AssumptionBox;
@@ -267,11 +283,32 @@ export interface GenerateRequest {
 
 export interface GenerateResponse {
   caseId: string;
+  /** Final image after optional Claude review + second Gemini pass. */
   generatedImageUrl: string;
+  /** First-pass Gemini output (before reviewer pass); omitted in older clients. */
+  draftImageUrl?: string;
+  /** Top 3 fixes the reviewer asked for (fed into the final Gemini edit). */
+  reviewerBullets: string[];
   prompt: string;
   constraints: TreatmentConstraints;
   assumption: AssumptionBox;
   issues: Issue[];
   generationTimeMs: number;
+  /** Final image model id; may include pipeline hint when multiple steps ran. */
   modelVersion: string;
+}
+
+/** Dentist refinement: Claude → short Gemini edit prompt → image */
+export interface RefinePreviewRequest {
+  dentistNotes: string;
+  currentPreviewUrl: string;
+  originalPhotoUrl: string;
+}
+
+export interface RefinePreviewResponse {
+  generatedImageUrl: string;
+  editPrompt: string;
+  generationTimeMs: number;
+  modelVersion: string;
+  mock?: boolean;
 }

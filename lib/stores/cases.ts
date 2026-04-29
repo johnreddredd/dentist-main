@@ -13,7 +13,10 @@ interface CasesState {
   getCase: (id: string) => Case | undefined;
 }
 
+type CasesPersisted = Pick<CasesState, "cases">;
+
 const PERSIST_NAME = "smileai-cases";
+const PERSIST_VERSION = 4;
 
 /** IndexedDB via localforage — large base64 images exceed localStorage quota. */
 const casesIdb = localforage.createInstance({
@@ -21,15 +24,41 @@ const casesIdb = localforage.createInstance({
   storeName: "cases_store",
 });
 
+/** Serialize writes so rapid updates + refresh don't read stale IDB before prior flush. */
+let persistWriteQueue = Promise.resolve();
+
 const idbStorage: StateStorage = {
   getItem: async (name) => (await casesIdb.getItem<string>(name)) ?? null,
-  setItem: async (name, value) => {
-    await casesIdb.setItem(name, value);
+  setItem: (name, value) => {
+    const done = persistWriteQueue
+      .then(() => casesIdb.setItem(name, value))
+      .catch((err) => {
+        console.error("[cases persist] write failed", err);
+      });
+    persistWriteQueue = done.then(() => undefined);
+    return done;
   },
   removeItem: async (name) => {
     await casesIdb.removeItem(name);
   },
 };
+
+/** Best-effort: await pending persist writes (e.g. tab hidden / before quick navigation). */
+export function waitForCasesPersistWrites(): Promise<void> {
+  return persistWriteQueue;
+}
+
+function migrateCasesPersist(persisted: unknown, _fromVersion: number): CasesPersisted {
+  if (
+    persisted &&
+    typeof persisted === "object" &&
+    "cases" in persisted &&
+    Array.isArray((persisted as CasesPersisted).cases)
+  ) {
+    return { cases: (persisted as CasesPersisted).cases };
+  }
+  return { cases: [] };
+}
 
 if (typeof window !== "undefined") {
   try {
@@ -55,8 +84,10 @@ export const useCasesStore = create<CasesState>()(
     }),
     {
       name: PERSIST_NAME,
-      version: 3,
+      version: PERSIST_VERSION,
       storage: createJSONStorage(() => idbStorage),
+      partialize: (state): CasesPersisted => ({ cases: state.cases }),
+      migrate: migrateCasesPersist,
     },
   ),
 );

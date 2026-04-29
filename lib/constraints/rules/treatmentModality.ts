@@ -106,7 +106,7 @@ export function evaluateTreatmentModality(
 
     case "alignment": {
       allowedChanges.push(
-        `Alignment / position change across the visible arch using ${form.material ?? "orthodontic treatment"}`,
+        `Tooth alignment, arch coordination, and occlusal relationship (including bite correction where the before photo indicates it) across the visible arch using ${form.material ?? "orthodontic treatment"} — finish should look like real post-treatment orthodontics (appliance-off), not fantasy-perfect`,
       );
       forbiddenChanges.push(
         "Shape change beyond what natural repositioning produces",
@@ -117,7 +117,7 @@ export function evaluateTreatmentModality(
 
     case "makeover": {
       allowedChanges.push(
-        "Combined plan: shape, color, and alignment changes per form selections",
+        "Combined plan: shape, color, alignment, and bite/occlusal changes per form selections when indicated by the before photo — plausible comprehensive finishing",
       );
       break;
     }

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { ToothNumber, ToothState } from "@/types";
 import { UPPER_TEETH, LOWER_TEETH } from "@/lib/constraints/constants";
 import { useGenerateForm } from "@/lib/stores/generate-form";
+import { Button } from "@/components/ui/button";
 
 const STATE_CYCLE: (ToothState | null)[] = [
   null,
@@ -46,6 +47,15 @@ function stateLabel(state: ToothState | undefined): string {
 export function ToothChart() {
   const teeth = useGenerateForm((s) => s.form.teeth);
   const setToothState = useGenerateForm((s) => s.setToothState);
+  const setManyToothStates = useGenerateForm((s) => s.setManyToothStates);
+
+  function selectAllUpper() {
+    setManyToothStates(UPPER_TEETH, "treatment");
+  }
+
+  function selectAllLower() {
+    setManyToothStates(LOWER_TEETH, "treatment");
+  }
 
   function cycle(n: ToothNumber) {
     const current = teeth[n];
@@ -70,9 +80,20 @@ export function ToothChart() {
 
       {/* UPPER */}
       <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[color:var(--color-warm-500)]">
-          Upper
-        </p>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-warm-500)]">
+            Upper
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-lg border-[color:var(--color-warm-200)] text-xs"
+            onClick={selectAllUpper}
+          >
+            Select all upper
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {UPPER_TEETH.map((n) => (
             <ToothButton
@@ -87,9 +108,20 @@ export function ToothChart() {
 
       {/* LOWER */}
       <div>
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[color:var(--color-warm-500)]">
-          Lower
-        </p>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-warm-500)]">
+            Lower
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 rounded-lg border-[color:var(--color-warm-200)] text-xs"
+            onClick={selectAllLower}
+          >
+            Select all lower
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-1.5">
           {LOWER_TEETH.map((n) => (
             <ToothButton

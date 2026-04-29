@@ -34,6 +34,11 @@ interface GenerateState {
   // screen 3
   setMaterial: (m: string) => void;
   setToothState: (n: ToothNumber, state: ToothState | null) => void;
+  /** Set many teeth in one update (e.g. select all in an arch). */
+  setManyToothStates: (
+    numbers: readonly ToothNumber[],
+    state: ToothState | null,
+  ) => void;
   setShade: (s: VitaShade) => void;
   setShape: (s: ToothShape) => void;
   setFullArch: (v: boolean) => void;
@@ -89,6 +94,18 @@ export const useGenerateForm = create<GenerateState>((set, get) => ({
         delete teeth[n];
       } else {
         teeth[n] = state;
+      }
+      return { form: { ...s.form, teeth } };
+    }),
+  setManyToothStates: (numbers, state) =>
+    set((s) => {
+      const teeth = { ...s.form.teeth };
+      for (const n of numbers) {
+        if (state === null) {
+          delete teeth[n];
+        } else {
+          teeth[n] = state;
+        }
       }
       return { form: { ...s.form, teeth } };
     }),

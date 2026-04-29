@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Menu, Sparkles } from "lucide-react";
+import { useGenerateForm } from "@/lib/stores/generate-form";
 
 export function TopBar() {
   return (
@@ -19,7 +20,15 @@ export function TopBar() {
         </div>
         <span className="text-sm font-semibold">SmileAI</span>
       </Link>
-      <div className="ml-auto flex items-center gap-3">
+      <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <Link
+          href="/generate"
+          onClick={() => useGenerateForm.getState().reset()}
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:var(--color-teal-700)] bg-white px-3 text-xs font-semibold text-[color:var(--color-teal-700)] hover:bg-[color:var(--color-teal-50)] sm:h-10 sm:px-4 sm:text-sm"
+        >
+          <Sparkles className="size-3.5 sm:size-4" />
+          New preview
+        </Link>
         <span className="hidden text-xs text-[color:var(--color-warm-500)] sm:inline">
           Dr. Preview Practice
         </span>

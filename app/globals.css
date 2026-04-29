@@ -90,3 +90,120 @@ button,
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* Premium case review — micro-motion */
+@keyframes review-success-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.review-success-animate {
+  animation: review-success-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes review-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.review-skeleton {
+  background: linear-gradient(
+    90deg,
+    #e7e5e4 0%,
+    #f5f5f4 50%,
+    #e7e5e4 100%
+  );
+  background-size: 200% 100%;
+  animation: review-shimmer 1.2s ease-in-out infinite;
+}
+
+.review-vignette {
+  box-shadow: inset 0 0 80px rgba(15, 23, 42, 0.06);
+}
+
+/* Patient-facing preview — immersive frame + subtle smile emphasis */
+.patient-preview-frame {
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow:
+    0 22px 56px -24px rgba(15, 23, 42, 0.18),
+    0 10px 28px -14px rgba(15, 23, 42, 0.1);
+}
+
+.patient-smile-focus {
+  position: relative;
+}
+
+.patient-smile-focus::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 120px rgba(15, 23, 42, 0.09);
+  background: radial-gradient(
+    ellipse 74% 52% at 50% 40%,
+    rgba(255, 255, 255, 0.16) 0%,
+    transparent 54%
+  );
+}
+
+.patient-image-crossfade {
+  transition: opacity 0.35s ease, transform 0.45s ease;
+}
+
+/* Patient preview — intro crossfade (before → after) + after emphasis */
+@keyframes patient-intro-before {
+  0% {
+    opacity: 1;
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes patient-intro-after {
+  0% {
+    opacity: 0;
+    transform: scale(1.045);
+    filter: brightness(1);
+  }
+  35% {
+    opacity: 0.2;
+    transform: scale(1.03);
+    filter: brightness(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1.04);
+  }
+}
+
+.patient-intro-layer-before {
+  animation: patient-intro-before 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.patient-intro-layer-after {
+  animation: patient-intro-after 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.patient-after-pop {
+  filter: brightness(1.035) contrast(1.02);
+  box-shadow:
+    0 0 0 1px rgba(20, 184, 166, 0.12),
+    0 0 48px -12px rgba(15, 118, 110, 0.35);
+}

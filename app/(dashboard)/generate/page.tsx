@@ -12,8 +12,9 @@ import { TreatmentSpecifics } from "@/components/form/TreatmentSpecifics";
 import { ModeSelector } from "@/components/form/ModeSelector";
 import { SummaryPanel } from "@/components/form/SummaryPanel";
 import { useGenerateForm } from "@/lib/stores/generate-form";
-import { useCasesStore } from "@/lib/stores/cases";
+import { useCasesStore, waitForCasesPersistWrites } from "@/lib/stores/cases";
 import type { Case, GenerateResponse } from "@/types";
+import { createInitialGeneration } from "@/lib/cases/preview-history";
 
 export default function GeneratePage() {
   const router = useRouter();
@@ -43,11 +44,19 @@ export default function GeneratePage() {
       }
       const data = (await res.json()) as GenerateResponse;
 
+      const initialGen = createInitialGeneration(
+        data.caseId,
+        data.generatedImageUrl,
+        new Date().toISOString(),
+      );
       const newCase: Case = {
         id: data.caseId,
         userId: "local-dev",
         originalPhotoUrl: form.photoDataUrl ?? "",
         generatedImageUrl: data.generatedImageUrl,
+        previewGenerations: [initialGen],
+        selectedGenerationId: initialGen.id,
+        aiReviewerBullets: data.reviewerBullets,
         treatmentData: form,
         constraints: data.constraints,
         assumption: data.assumption,
@@ -57,6 +66,7 @@ export default function GeneratePage() {
         createdAt: new Date().toISOString(),
       };
       addCase(newCase);
+      await waitForCasesPersistWrites();
       router.push(`/cases/${data.caseId}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");

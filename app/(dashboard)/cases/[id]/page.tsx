@@ -3,63 +3,104 @@
 import * as React from "react";
 import { use } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { PreviewDisplay } from "@/components/generation/PreviewDisplay";
-import { AssumptionBox } from "@/components/generation/AssumptionBox";
-import { ApprovalGate } from "@/components/generation/ApprovalGate";
-import { useCasesStore } from "@/lib/stores/cases";
-import { useGenerateForm } from "@/lib/stores/generate-form";
+import { CasePreviewHero, type PreviewViewMode } from "@/components/case/CasePreviewHero";
+import { CasePreviewDecision } from "@/components/case/CasePreviewDecision";
+import { CaseTrustPanel } from "@/components/case/CaseTrustPanel";
+import { CaseDecisionActions } from "@/components/case/CaseDecisionActions";
+import { CasePatientShareCard } from "@/components/case/CasePatientShareCard";
+import {
+  appendRefinedGeneration,
+  createInitialGeneration,
+  ensurePreviewGenerations,
+} from "@/lib/cases/preview-history";
+import { ReviewPreviewVersions } from "@/components/review/review-preview-versions";
+import { ReviewRefinePanel } from "@/components/review/review-refine-panel";
+import { useCasesStore, waitForCasesPersistWrites } from "@/lib/stores/cases";
 import type { GenerateResponse } from "@/types";
-import { formatDate } from "@/lib/utils";
 
-
-// Next.js 16: params is a Promise
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function CaseDetailPage({ params }: PageProps) {
   const { id } = use(params);
-  const router = useRouter();
   const caseData = useCasesStore((s) => s.cases.find((c) => c.id === id));
   const updateCase = useCasesStore((s) => s.updateCase);
 
   const [regenerating, setRegenerating] = React.useState(false);
+  const [refineBusy, setRefineBusy] = React.useState(false);
   const [approving, setApproving] = React.useState(false);
-  const [regenCount, setRegenCount] = React.useState(0);
   const [error, setError] = React.useState<string | null>(null);
+  const [viewMode, setViewMode] = React.useState<PreviewViewMode>("split");
+  const [adjustOpen, setAdjustOpen] = React.useState(false);
+  const [refineBaseId, setRefineBaseId] = React.useState("");
 
-  if (!caseData) {
-    return (
-      <div className="mx-auto max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Case not found</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-[color:var(--color-warm-500)]">
-              This case may have been deleted, or is stored on another device.
-            </p>
-            <Link
-              href="/cases"
-              className="mt-4 inline-flex h-11 items-center justify-center rounded-full border border-[color:var(--color-warm-200)] bg-white px-4 text-sm font-medium hover:bg-[color:var(--color-warm-100)]"
-            >
-              Back to library
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const { generations: gens, selectedId: selId } = React.useMemo(() => {
+    if (!caseData) {
+      return { generations: [], selectedId: "" } as ReturnType<
+        typeof ensurePreviewGenerations
+      >;
+    }
+    return ensurePreviewGenerations(caseData);
+  }, [caseData]);
+
+  React.useEffect(() => {
+    if (!caseData) return;
+    if (!refineBaseId && gens.length) {
+      setRefineBaseId(selId);
+      return;
+    }
+    if (refineBaseId && !gens.some((g) => g.id === refineBaseId)) {
+      setRefineBaseId(selId);
+    }
+  }, [caseData, gens, refineBaseId, selId]);
+
+  const selectedGen = gens.find((g) => g.id === selId);
+  const generatedUrl =
+    (caseData &&
+      (selectedGen?.imageUrl ??
+        caseData.generatedImageUrl ??
+        caseData.originalPhotoUrl)) ??
+    "";
+  const refineBase = refineBaseId || selId;
+
+  const onSelectVersion = React.useCallback(
+    (genId: string) => {
+      if (!caseData) return;
+      const g = gens.find((x) => x.id === genId);
+      if (!g) return;
+      const { generations: fullList } = ensurePreviewGenerations(caseData);
+      updateCase(caseData.id, {
+        previewGenerations: fullList,
+        selectedGenerationId: genId,
+        generatedImageUrl: g.imageUrl,
+      });
+      setRefineBaseId(genId);
+    },
+    [caseData, gens, updateCase],
+  );
+
+  const onRefinedFromNote = React.useCallback(
+    async (url: string, note: string) => {
+      if (!caseData) return;
+      const { generations: list } = ensurePreviewGenerations(caseData);
+      const { list: next, newGen } = appendRefinedGeneration(list, url, note);
+      updateCase(caseData.id, {
+        previewGenerations: next,
+        selectedGenerationId: newGen.id,
+        generatedImageUrl: newGen.imageUrl,
+      });
+      await waitForCasesPersistWrites();
+      requestAnimationFrame(() => setRefineBaseId(newGen.id));
+    },
+    [caseData, updateCase],
+  );
 
   async function onRegenerate() {
     if (!caseData) return;
@@ -73,12 +114,22 @@ export default function CaseDetailPage({ params }: PageProps) {
       });
       if (!res.ok) throw new Error((await res.json())?.error ?? "Failed");
       const data = (await res.json()) as GenerateResponse;
+      const regenGen = createInitialGeneration(
+        caseData.id,
+        data.generatedImageUrl,
+        new Date().toISOString(),
+        `regen-${Date.now()}`,
+      );
       updateCase(caseData.id, {
         generatedImageUrl: data.generatedImageUrl,
+        previewGenerations: [regenGen],
+        selectedGenerationId: regenGen.id,
+        aiReviewerBullets: data.reviewerBullets,
         constraints: data.constraints,
         assumption: data.assumption,
       });
-      setRegenCount((n) => n + 1);
+      await waitForCasesPersistWrites();
+      setRefineBaseId(regenGen.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Unknown error");
     } finally {
@@ -90,113 +141,126 @@ export default function CaseDetailPage({ params }: PageProps) {
     if (!caseData) return;
     setApproving(true);
     updateCase(caseData.id, { approved: true });
-    setTimeout(() => setApproving(false), 300);
+    window.setTimeout(() => setApproving(false), 450);
   }
 
-  function onAdjust() {
-    if (!caseData) return;
-    // Pre-fill the form store with this case's data and jump to step 3.
-    useGenerateForm.setState({
-      step: 3,
-      form: caseData.treatmentData,
-    });
-    router.push("/generate");
+  function onAdjustRegenerate() {
+    setAdjustOpen((o) => !o);
   }
 
-  const modeBadge =
-    caseData.mode === "aspirational"
-      ? "warning"
-      : caseData.mode === "conservative"
-        ? "success"
-        : "teal";
+  if (!caseData) {
+    return (
+      <div className="mx-auto max-w-lg">
+        <Card className="border-[#E7E5E4] shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-base font-semibold text-[#0F172A]">
+              Case not found
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-[#64748B]">
+              This case may have been deleted, or is stored on another device.
+            </p>
+            <Link
+              href="/cases"
+              className="mt-4 inline-flex h-11 items-center justify-center rounded-xl border border-[#E7E5E4] bg-white px-4 text-sm font-semibold text-[#0F172A] shadow-sm transition-colors hover:bg-[#FAFAF9]"
+            >
+              Back to Case Library
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const caseRow = caseData;
+  const originalUrl = caseRow.originalPhotoUrl;
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <Link
-          href="/cases"
-          className="inline-flex items-center gap-1.5 text-sm text-[color:var(--color-warm-600)] hover:text-[color:var(--color-warm-900)]"
-        >
-          <ArrowLeft className="size-4" /> All cases
-        </Link>
-        {caseData.approved && (
-          <Badge variant="success">
-            <CheckCircle2 className="size-3" /> Approved
-          </Badge>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {caseData.constraints.treatmentType}
-        </h1>
-        <Badge variant={modeBadge}>{caseData.mode} mode</Badge>
-        <span className="text-xs text-[color:var(--color-warm-500)]">
-          {formatDate(caseData.createdAt)}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-4">
-          <PreviewDisplay
-            originalUrl={caseData.originalPhotoUrl}
-            generatedUrl={caseData.generatedImageUrl ?? caseData.originalPhotoUrl}
-            loading={regenerating}
+    <div className="mx-auto max-w-[1200px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,340px)] lg:items-start lg:gap-8 xl:gap-10">
+        <div className="flex min-w-0 flex-col gap-7">
+          <CasePreviewHero
+            beforeSrc={originalUrl}
+            afterSrc={generatedUrl}
+            loading={regenerating || refineBusy}
+            mode={viewMode}
+            onModeChange={setViewMode}
+            caseId={caseRow.id}
           />
 
-          {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          <CasePreviewDecision
+            approved={caseRow.approved}
+            approving={approving}
+            regenerating={regenerating || refineBusy}
+            onApprove={onApprove}
+          />
+
+          <CaseDecisionActions
+            approved={caseRow.approved}
+            regenerating={regenerating || refineBusy}
+            adjustPanelOpen={adjustOpen}
+            onRegenerate={onRegenerate}
+            onAdjustRegenerate={onAdjustRegenerate}
+          />
+
+          {adjustOpen && !caseRow.approved && gens.length > 0 ? (
+            <div className="space-y-4 rounded-2xl border border-[#E7E5E4] bg-[#FAFAF9]/80 p-4 sm:p-5">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-[#0F172A]">
+                    Adjust &amp; regenerate from your note
+                  </h3>
+                  <p className="mt-0.5 max-w-xl text-xs text-[#64748B]">
+                    Describe the change in the box below. Your text is turned
+                    into a precise image instruction, then a new preview is
+                    generated—same flow as on the review page.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAdjustOpen(false)}
+                  className="shrink-0 text-xs font-medium text-[#0F766E] hover:underline"
+                >
+                  Close
+                </button>
+              </div>
+              {gens.length > 1 ? (
+                <ReviewPreviewVersions
+                  generations={gens}
+                  selectedId={selId}
+                  onSelectId={onSelectVersion}
+                />
+              ) : null}
+              <ReviewRefinePanel
+                notesFieldId="case-adjust-refine-notes"
+                originalPhotoUrl={originalUrl}
+                generations={gens}
+                refineBaseId={refineBase}
+                onRefineBaseIdChange={setRefineBaseId}
+                onRefined={onRefinedFromNote}
+                onBusyChange={setRefineBusy}
+              />
+            </div>
+          ) : null}
+
+          {error ? (
+            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm text-red-800">
               {error}
             </p>
-          )}
-
-          <ApprovalGate
-            onApprove={onApprove}
-            onRegenerate={onRegenerate}
-            onAdjust={onAdjust}
-            regenerating={regenerating}
-            approving={approving}
-            regenerationCount={regenCount}
-          />
+          ) : null}
         </div>
 
-        <aside className="space-y-4">
-          <AssumptionBox box={caseData.assumption} />
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Patient outcome</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-3 text-sm text-[color:var(--color-warm-500)]">
-                After consult, log whether the patient accepted the treatment plan.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {(["yes", "no", "pending"] as const).map((v) => (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => updateCase(caseData.id, { patientAccepted: v })}
-                    className={
-                      "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
-                      (caseData.patientAccepted === v
-                        ? "border-[color:var(--color-teal-700)] bg-[color:var(--color-teal-700)] text-white"
-                        : "border-[color:var(--color-warm-200)] bg-white text-[color:var(--color-warm-700)] hover:bg-[color:var(--color-warm-100)]")
-                    }
-                  >
-                    {v === "yes"
-                      ? "Accepted"
-                      : v === "no"
-                        ? "Declined"
-                        : "Pending"}
-                  </button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </aside>
+        <CaseTrustPanel
+          caseData={caseRow}
+          patientAccepted={caseRow.patientAccepted}
+          onPatientOutcome={(v) =>
+            updateCase(caseRow.id, { patientAccepted: v })
+          }
+        />
       </div>
 
+      <CasePatientShareCard caseId={caseRow.id} className="mt-8 lg:mt-10" />
     </div>
   );
 }
