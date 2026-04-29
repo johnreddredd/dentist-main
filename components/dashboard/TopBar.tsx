@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { useGenerateForm } from "@/lib/stores/generate-form";
 
 const MOBILE_LINKS = [
-  { href: "/generate", label: "New Preview", icon: Sparkles, primary: true },
+  { href: "/generate", label: "New Preview", icon: Sparkles },
   { href: "/cases", label: "Patient Library", icon: Users },
   { href: "/stats", label: "Stats", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
@@ -133,7 +133,7 @@ export function TopBar() {
                       "flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition-colors min-h-[48px]",
                       active
                         ? "bg-white text-[#0F766E] shadow-sm ring-1 ring-[#E7E5E4]"
-                        : l.primary
+                        : l.href === "/generate"
                           ? "bg-[color:var(--color-teal-700)] text-white hover:bg-[color:var(--color-teal-800)]"
                           : "text-[#57534E] hover:bg-white/70",
                     )}
