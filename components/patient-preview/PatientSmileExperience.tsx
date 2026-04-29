@@ -5,6 +5,7 @@ import { Check, Mail, Phone } from "lucide-react";
 import { BeforeAfterSlider } from "@/components/review/before-after-slider";
 import { OriginalAspectPhotoFrame } from "@/components/review/original-aspect-photo-frame";
 import { PATIENT_WHAT_LOOKS_GOOD } from "@/lib/patient-preview-copy";
+import type { PatientShareContact } from "@/lib/cases/patient-utils";
 import { cn } from "@/lib/utils";
 
 type CompareMode = "after" | "before" | "split";
@@ -19,11 +20,7 @@ const MODES: { id: CompareMode; label: string }[] = [
 const COMPARE_FRAME_CLASS =
   "patient-preview-frame bg-[#1c1917] ring-1 ring-black/5";
 
-export interface PatientShareContact {
-  phoneDisplay: string;
-  phoneTel: string;
-  email: string;
-}
+export type { PatientShareContact };
 
 export interface PatientSmileExperienceProps {
   beforeSrc: string;
@@ -227,54 +224,72 @@ export function PatientSmileExperience({
         ) : null
       ) : (
         <div className="mx-auto mt-10 w-full max-w-xl sm:mt-12">
-          <div className="flex flex-col gap-3">
-            <button
-              type="button"
-              className="inline-flex h-14 min-h-[56px] w-full items-center justify-center rounded-2xl bg-[#0F766E] px-6 text-base font-semibold text-white shadow-md transition-all hover:bg-[#0D6861] hover:shadow-lg hover:brightness-[1.02] active:scale-[0.98] active:shadow-md"
-            >
-              Start my smile transformation
-            </button>
-            {shareContact ? (
-              <>
-                <p className="text-center text-xs text-[#64748B] sm:text-sm">
-                  Questions? Reach your dentist directly.
-                </p>
-                <p className="text-center font-mono text-sm font-medium text-[#0F172A]">
+          {shareContact &&
+          (shareContact.phoneTel ||
+            shareContact.email ||
+            shareContact.phoneDisplay) ? (
+            <div className="flex flex-col gap-4 rounded-2xl border border-[#E7E5E4] bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-center text-base font-semibold text-[#0F172A] sm:text-lg">
+                Contact your dental team
+              </h2>
+              <p className="text-center text-sm text-[#64748B]">
+                Call or email the office about this preview and your next
+                visit.
+              </p>
+              {shareContact.phoneDisplay ? (
+                <p className="text-center font-mono text-base font-medium text-[#0F172A]">
                   {shareContact.phoneDisplay}
                 </p>
-                <div className="grid gap-3 sm:grid-cols-2">
+              ) : null}
+              <div
+                className={cn(
+                  "grid gap-3",
+                  shareContact.phoneTel && shareContact.email
+                    ? "sm:grid-cols-2"
+                    : "grid-cols-1",
+                )}
+              >
+                {shareContact.phoneTel ? (
                   <a
                     href={`tel:${shareContact.phoneTel}`}
                     className="inline-flex h-12 min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#E7E5E4] bg-white px-4 text-sm font-semibold text-[#334155] shadow-sm transition-all hover:border-[#CBD5E1] hover:bg-[#FAFAFA] active:scale-[0.98]"
                   >
-                    <Phone className="size-4 shrink-0 text-[#0F766E]" aria-hidden />
-                    Call dentist
+                    <Phone
+                      className="size-4 shrink-0 text-[#0F766E]"
+                      aria-hidden
+                    />
+                    Call the office
                   </a>
+                ) : null}
+                {shareContact.email ? (
                   <a
                     href={`mailto:${shareContact.email}?subject=My%20smile%20preview`}
                     className="inline-flex h-12 min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-[#E7E5E4] bg-white px-4 text-sm font-semibold text-[#334155] shadow-sm transition-all hover:border-[#CBD5E1] hover:bg-[#FAFAFA] active:scale-[0.98]"
                   >
-                    <Mail className="size-4 shrink-0 text-[#0F766E]" aria-hidden />
-                    Email dentist
+                    <Mail
+                      className="size-4 shrink-0 text-[#0F766E]"
+                      aria-hidden
+                    />
+                    Email the office
                   </a>
-                </div>
+                ) : null}
+              </div>
+              {shareContact.email ? (
                 <p className="text-center text-[11px] text-[#94A3B8] sm:text-xs">
                   {shareContact.email}
                 </p>
-              </>
-            ) : (
-              <button
-                type="button"
-                className="inline-flex h-12 min-h-[48px] w-full items-center justify-center rounded-2xl border-2 border-[#E7E5E4] bg-white px-6 text-sm font-semibold text-[#334155] shadow-sm transition-all hover:border-[#CBD5E1] hover:bg-[#FAFAFA] active:scale-[0.98]"
-              >
-                Talk to my dentist
-              </button>
-            )}
-          </div>
-          <p className="mx-auto mt-4 max-w-md text-center text-xs leading-relaxed text-[#64748B] sm:text-sm">
+              ) : null}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-[#E7E5E4] bg-[#FAFAFA] px-5 py-6 text-center text-sm leading-relaxed text-[#64748B]">
+              Your dentist can add a phone number and email to this preview so
+              you can reach the practice here.
+            </p>
+          )}
+          <p className="mx-auto mt-6 max-w-md text-center text-xs leading-relaxed text-[#64748B] sm:text-sm">
             Next step: your dentist will walk you through your treatment plan.
           </p>
-          <p className="mx-auto mt-8 max-w-md text-center text-[11px] leading-relaxed text-[#94A3B8] sm:text-xs">
+          <p className="mx-auto mt-6 max-w-md text-center text-[11px] leading-relaxed text-[#94A3B8] sm:text-xs">
             Visual preview only. Your dentist will guide your final treatment.
           </p>
         </div>

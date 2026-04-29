@@ -3,9 +3,9 @@
 import { useParams } from "next/navigation";
 import {
   PatientSmileExperience,
-  type PatientShareContact,
 } from "@/components/patient-preview/PatientSmileExperience";
 import { ensurePreviewGenerations } from "@/lib/cases/preview-history";
+import { buildPatientShareContactFromCase } from "@/lib/cases/patient-utils";
 import { useCasesStore } from "@/lib/stores/cases";
 import type { Case } from "@/types";
 
@@ -58,27 +58,6 @@ function routeId(raw: string | string[] | undefined): string {
   return "";
 }
 
-/** When both exist, show Call / Email under the preview (shared link on this device). */
-function shareContactFromPatient(c: Case): PatientShareContact | undefined {
-  const phone = c.patient?.phone?.trim();
-  const email = c.patient?.email?.trim();
-  if (!phone || !email) return undefined;
-  const digits = phone.replace(/\D/g, "");
-  const phoneTel =
-    digits.length === 10
-      ? `+1${digits}`
-      : phone.startsWith("+")
-        ? phone.replace(/\s/g, "")
-        : digits
-          ? `+${digits}`
-          : phone;
-  return {
-    phoneDisplay: phone,
-    phoneTel,
-    email,
-  };
-}
-
 /**
  * Patient-facing `/preview/[id]` share: full compare experience + reassurance +
  * optional practice contact (same full experience as in-clinic review, without checklist / refine tools).
@@ -96,7 +75,7 @@ export function PatientPreviewView() {
     c.generatedImageUrl ??
     c.originalPhotoUrl;
   const beforeSrc = c.originalPhotoUrl;
-  const shareContact = shareContactFromPatient(c);
+  const shareContact = buildPatientShareContactFromCase(c);
 
   return (
     <div className="min-h-dvh bg-[color:var(--color-warm-50)]">

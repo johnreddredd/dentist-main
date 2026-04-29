@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { PatientSmileExperience } from "@/components/patient-preview/PatientSmileExperience";
+import { buildPatientShareContactFromCase } from "@/lib/cases/patient-utils";
 import {
   appendRefinedGeneration,
   createInitialGeneration,
@@ -238,6 +239,7 @@ export default function CaseReviewPage(props: PageProps) {
           beforeSrc={beforeSrc}
           afterSrc={afterSrc}
           loading={refineBusy}
+          shareContact={buildPatientShareContactFromCase(effectiveCase)}
           mainClassName="px-0 pt-4 pb-6 sm:px-0 sm:pb-8 sm:pt-6"
           footer={
             showSuccess ? (
@@ -245,7 +247,7 @@ export default function CaseReviewPage(props: PageProps) {
                 previewUrl={previewUrlDisplay}
                 caseId={effectiveCase.id}
               />
-            ) : null
+            ) : undefined
           }
           belowCompareSlot={
             !showSuccess && generations.length > 0 ? (
