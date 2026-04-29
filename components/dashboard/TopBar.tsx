@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Sparkles } from "lucide-react";
+import { Menu, Settings, Sparkles } from "lucide-react";
 import { useGenerateForm } from "@/lib/stores/generate-form";
 
 export function TopBar() {
@@ -21,6 +21,14 @@ export function TopBar() {
         <span className="text-sm font-semibold">SmileAI</span>
       </Link>
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <Link
+          href="/settings"
+          aria-label="Settings"
+          className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[color:var(--color-warm-200)] bg-white px-3 text-xs font-medium text-[color:var(--color-warm-800)] hover:bg-[color:var(--color-warm-50)] sm:h-10 sm:px-3.5 sm:text-sm"
+        >
+          <Settings className="size-3.5 sm:size-4" aria-hidden />
+          <span className="hidden sm:inline">Settings</span>
+        </Link>
         <Link
           href="/generate"
           onClick={() => useGenerateForm.getState().reset()}

@@ -1,4 +1,5 @@
 import { PatientLibrary } from "@/components/dashboard/PatientLibrary";
+import { CasesBackupCard } from "@/components/settings/CasesBackupCard";
 
 export default function CasesPage() {
   return (
@@ -13,6 +14,7 @@ export default function CasesPage() {
           database.
         </p>
       </div>
+      <CasesBackupCard />
       <PatientLibrary />
     </div>
   );
