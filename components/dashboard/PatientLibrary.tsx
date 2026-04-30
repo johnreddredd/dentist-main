@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useCasesStore } from "@/lib/stores/cases";
 import { useGenerateForm } from "@/lib/stores/generate-form";
-import { formatRelative } from "@/lib/utils";
+import { formatDate, formatRelative } from "@/lib/utils";
 import {
   formatPatientListName,
   patientLibrarySearchHaystack,
@@ -158,7 +158,7 @@ export function PatientLibrary() {
                   >
                     {c.mode}
                   </Badge>
-                  <span>{formatRelative(c.createdAt)}</span>
+                  <CaseCreatedLabel createdAt={c.createdAt} />
                 </div>
               </div>
             </Link>
@@ -172,4 +172,17 @@ export function PatientLibrary() {
       ) : null}
     </div>
   );
+}
+
+/** Stable date on SSR + first paint; switches to relative time after mount. */
+function CaseCreatedLabel({ createdAt }: { createdAt: string }) {
+  const [label, setLabel] = React.useState(() => formatDate(createdAt));
+  React.useEffect(() => {
+    setLabel(formatRelative(createdAt));
+    const t = window.setInterval(() => {
+      setLabel(formatRelative(createdAt));
+    }, 60_000);
+    return () => window.clearInterval(t);
+  }, [createdAt]);
+  return <span>{label}</span>;
 }

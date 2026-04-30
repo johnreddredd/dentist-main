@@ -22,10 +22,17 @@ export function SupabaseAuthProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const [mounted, setMounted] = React.useState(false);
   const [user, setUser] = React.useState<User | null>(null);
-  const [loading, setLoading] = React.useState(() => isSupabaseConfigured());
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!mounted) return;
+
     if (!isSupabaseConfigured()) {
       setLoading(false);
       return;
@@ -85,10 +92,18 @@ export function SupabaseAuthProvider({
       removePersistListener?.();
       authSubscription?.unsubscribe();
     };
-  }, []);
+  }, [mounted]);
+
+  const contextValue = React.useMemo(
+    () =>
+      mounted
+        ? { user, loading }
+        : { user: null as User | null, loading: true },
+    [mounted, user, loading],
+  );
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 }
 
