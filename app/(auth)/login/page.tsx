@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getPublicAppOrigin } from "@/lib/public-app-url";
+import { getAuthRedirectOrigin } from "@/lib/public-app-url";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -66,10 +66,12 @@ export default function LoginPage() {
     const supabase = getBrowserSupabase();
     if (!supabase) return;
     setLoading(true);
-    const origin = getPublicAppOrigin();
+    const origin = getAuthRedirectOrigin();
     if (!origin) {
       setLoading(false);
-      setError("Could not resolve app URL. Set NEXT_PUBLIC_APP_URL in production.");
+      setError(
+        "Set NEXT_PUBLIC_APP_URL on Railway to your live https URL (not localhost), redeploy, and try again.",
+      );
       return;
     }
     const { error: oauthErr } = await supabase.auth.signInWithOAuth({

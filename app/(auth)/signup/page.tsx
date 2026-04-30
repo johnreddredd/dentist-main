@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getPublicAppOrigin } from "@/lib/public-app-url";
+import { getAuthRedirectOrigin } from "@/lib/public-app-url";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -43,10 +43,10 @@ export default function SignupPage() {
       setError("Could not start Supabase client.");
       return;
     }
-    const origin = getPublicAppOrigin();
+    const origin = getAuthRedirectOrigin();
     if (!origin) {
       setError(
-        "Could not resolve app URL. Set NEXT_PUBLIC_APP_URL or open this page from the app origin.",
+        "Set NEXT_PUBLIC_APP_URL on Railway to your live https URL (not localhost), redeploy. For local dev, run without NODE_ENV=production or set the env to http://localhost:3000.",
       );
       return;
     }
