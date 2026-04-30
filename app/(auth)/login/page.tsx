@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getPublicAppOrigin } from "@/lib/public-app-url";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -65,10 +66,16 @@ export default function LoginPage() {
     const supabase = getBrowserSupabase();
     if (!supabase) return;
     setLoading(true);
+    const origin = getPublicAppOrigin();
+    if (!origin) {
+      setLoading(false);
+      setError("Could not resolve app URL. Set NEXT_PUBLIC_APP_URL in production.");
+      return;
+    }
     const { error: oauthErr } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/generate`,
+        redirectTo: `${origin}/auth/callback?next=/generate`,
       },
     });
     setLoading(false);

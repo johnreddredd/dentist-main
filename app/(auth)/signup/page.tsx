@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getPublicAppOrigin } from "@/lib/public-app-url";
 import { getBrowserSupabase } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
@@ -42,13 +43,20 @@ export default function SignupPage() {
       setError("Could not start Supabase client.");
       return;
     }
+    const origin = getPublicAppOrigin();
+    if (!origin) {
+      setError(
+        "Could not resolve app URL. Set NEXT_PUBLIC_APP_URL or open this page from the app origin.",
+      );
+      return;
+    }
     setLoading(true);
     const { data, error: signErr } = await supabase.auth.signUp({
       email: form.email.trim(),
       password: form.password,
       options: {
         data: { practice_name: form.practice.trim() },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/generate`,
+        emailRedirectTo: `${origin}/auth/callback?next=/generate`,
       },
     });
     setLoading(false);
