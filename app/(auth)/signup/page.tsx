@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getBrowserSupabase } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -22,12 +24,46 @@ export default function SignupPage() {
     password: "",
   });
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [notice, setNotice] = React.useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+    setNotice(null);
+    if (!isSupabaseConfigured()) {
+      setError(
+        "Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+      );
+      return;
+    }
+    const supabase = getBrowserSupabase();
+    if (!supabase) {
+      setError("Could not start Supabase client.");
+      return;
+    }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 400));
-    router.push("/generate");
+    const { data, error: signErr } = await supabase.auth.signUp({
+      email: form.email.trim(),
+      password: form.password,
+      options: {
+        data: { practice_name: form.practice.trim() },
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/generate`,
+      },
+    });
+    setLoading(false);
+    if (signErr) {
+      setError(signErr.message);
+      return;
+    }
+    if (data.session) {
+      router.push("/generate");
+      router.refresh();
+      return;
+    }
+    setNotice(
+      "Check your email to confirm your account, then sign in. You can close this tab.",
+    );
   }
 
   return (
@@ -40,6 +76,16 @@ export default function SignupPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
+          {error ? (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+              {error}
+            </p>
+          ) : null}
+          {notice ? (
+            <p className="rounded-lg bg-teal-50 px-3 py-2 text-sm text-teal-900">
+              {notice}
+            </p>
+          ) : null}
           <div className="space-y-1.5">
             <Label htmlFor="practice">Practice name</Label>
             <Input
@@ -60,7 +106,9 @@ export default function SignupPage() {
               autoComplete="email"
               required
               value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, email: e.target.value }))
+              }
             />
           </div>
           <div className="space-y-1.5">

@@ -16,9 +16,11 @@ import { useCasesStore, waitForCasesPersistWrites } from "@/lib/stores/cases";
 import type { Case, CasePatientRecord, GenerateResponse } from "@/types";
 import { PatientIntakeModal } from "@/components/patient/PatientIntakeModal";
 import { createInitialGeneration } from "@/lib/cases/preview-history";
+import { useAuthUser } from "@/components/providers/SupabaseAuthProvider";
 
 export default function GeneratePage() {
   const router = useRouter();
+  const { user } = useAuthUser();
   const step = useGenerateForm((s) => s.step);
   const setStep = useGenerateForm((s) => s.setStep);
   const back = useGenerateForm((s) => s.back);
@@ -54,7 +56,7 @@ export default function GeneratePage() {
       );
       const newCase: Case = {
         id: data.caseId,
-        userId: "local-dev",
+        userId: user?.id ?? "local-dev",
         originalPhotoUrl: form.photoDataUrl ?? "",
         generatedImageUrl: data.generatedImageUrl,
         previewGenerations: [initialGen],

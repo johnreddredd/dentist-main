@@ -2,6 +2,11 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage, type StateStorage } from "zustand/middleware";
+import {
+  flushCaseRemoteUpsert,
+  scheduleCaseRemoteDelete,
+  scheduleCaseRemoteUpsert,
+} from "@/lib/cases/cases-remote";
 import localforage from "localforage";
 import type { Case } from "@/types";
 
@@ -15,6 +20,8 @@ interface CasesState {
   setCases: (cases: Case[]) => void;
   /** Upsert by case id; imported cases listed first. */
   mergeCases: (incoming: Case[]) => void;
+  /** Replace cases after a server pull without triggering remote upserts. */
+  replaceCasesFromServerPull: (cases: Case[]) => void;
 }
 
 type CasesPersisted = Pick<CasesState, "cases">;
@@ -77,21 +84,51 @@ export const useCasesStore = create<CasesState>()(
   persist(
     (set, get) => ({
       cases: [],
-      addCase: (c) => set((s) => ({ cases: [c, ...s.cases] })),
-      updateCase: (id, patch) =>
+      addCase: (c) => {
+        const withTime = {
+          ...c,
+          updatedAt: c.updatedAt ?? new Date().toISOString(),
+        };
+        set((s) => ({ cases: [withTime, ...s.cases] }));
+        flushCaseRemoteUpsert(() => get().getCase(c.id));
+      },
+      updateCase: (id, patch) => {
+        const touchedAt = new Date().toISOString();
         set((s) => ({
-          cases: s.cases.map((c) => (c.id === id ? { ...c, ...patch } : c)),
-        })),
-      removeCase: (id) =>
-        set((s) => ({ cases: s.cases.filter((c) => c.id !== id) })),
+          cases: s.cases.map((c) =>
+            c.id === id ? { ...c, ...patch, updatedAt: touchedAt } : c,
+          ),
+        }));
+        scheduleCaseRemoteUpsert(() => get().getCase(id));
+      },
+      removeCase: (id) => {
+        const row = get().getCase(id);
+        const uid = row?.userId;
+        set((s) => ({ cases: s.cases.filter((c) => c.id !== id) }));
+        if (uid) scheduleCaseRemoteDelete(id, uid);
+      },
       getCase: (id) => get().cases.find((c) => c.id === id),
-      setCases: (cases) => set({ cases: [...cases] }),
-      mergeCases: (incoming) =>
+      setCases: (cases) => {
+        set({ cases: [...cases] });
+        for (const c of cases) {
+          if (c.userId && c.userId !== "local-dev") {
+            flushCaseRemoteUpsert(() => get().getCase(c.id));
+          }
+        }
+      },
+      mergeCases: (incoming) => {
         set((s) => {
           const touched = new Set(incoming.map((c) => c.id));
           const rest = s.cases.filter((c) => !touched.has(c.id));
           return { cases: [...incoming, ...rest] };
-        }),
+        });
+        for (const c of incoming) {
+          if (c.userId && c.userId !== "local-dev") {
+            flushCaseRemoteUpsert(() => get().getCase(c.id));
+          }
+        }
+      },
+      replaceCasesFromServerPull: (cases) => set({ cases: [...cases] }),
     }),
     {
       name: PERSIST_NAME,

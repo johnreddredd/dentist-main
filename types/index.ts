@@ -236,6 +236,8 @@ export interface Case {
   approved: boolean;
   patientAccepted?: "yes" | "no" | "pending";
   createdAt: string;
+  /** Last write time for Supabase sync / conflict hints (ISO string). */
+  updatedAt?: string;
 }
 
 export interface Generation {

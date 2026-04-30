@@ -13,19 +13,66 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getBrowserSupabase } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("error") === "auth") {
+      setError("Sign-in failed. Try again or use another method.");
+    }
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+    if (!isSupabaseConfigured()) {
+      setError("Supabase is not configured. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+      return;
+    }
+    const supabase = getBrowserSupabase();
+    if (!supabase) {
+      setError("Could not start Supabase client.");
+      return;
+    }
     setLoading(true);
-    // Scaffold: no real auth yet. Supabase auth wires in Part 8.
-    await new Promise((r) => setTimeout(r, 400));
+    const { error: signErr } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    setLoading(false);
+    if (signErr) {
+      setError(signErr.message);
+      return;
+    }
     router.push("/generate");
+    router.refresh();
+  }
+
+  async function onGoogle() {
+    setError(null);
+    if (!isSupabaseConfigured()) {
+      setError("Supabase is not configured.");
+      return;
+    }
+    const supabase = getBrowserSupabase();
+    if (!supabase) return;
+    setLoading(true);
+    const { error: oauthErr } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/generate`,
+      },
+    });
+    setLoading(false);
+    if (oauthErr) setError(oauthErr.message);
   }
 
   return (
@@ -38,6 +85,11 @@ export default function LoginPage() {
       </CardHeader>
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
+          {error ? (
+            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+              {error}
+            </p>
+          ) : null}
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -75,10 +127,12 @@ export default function LoginPage() {
         </div>
 
         <Button
+          type="button"
           variant="secondary"
           size="lg"
           className="mt-4 w-full"
-          onClick={() => router.push("/generate")}
+          loading={loading}
+          onClick={() => void onGoogle()}
         >
           Continue with Google
         </Button>
