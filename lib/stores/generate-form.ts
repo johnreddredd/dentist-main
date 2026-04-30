@@ -44,6 +44,7 @@ interface GenerateState {
   setFullArch: (v: boolean) => void;
   setOrtho: (v: boolean) => void;
   setGumSurgery: (v: boolean) => void;
+  setProfessionalCleaning: (v: boolean) => void;
 
   // screen 4
   setMode: (m: Mode) => void;
@@ -81,8 +82,8 @@ export const useGenerateForm = create<GenerateState>((set, get) => ({
       form: {
         ...s.form,
         category: c,
-        // clear material when category changes; old material may not exist in new list.
         material: null,
+        professionalCleaningSelected: c === "alignment",
       },
     })),
 
@@ -117,6 +118,13 @@ export const useGenerateForm = create<GenerateState>((set, get) => ({
     set((s) => ({ form: { ...s.form, orthoSelected } })),
   setGumSurgery: (gumSurgerySelected) =>
     set((s) => ({ form: { ...s.form, gumSurgerySelected } })),
+  setProfessionalCleaning: (professionalCleaningSelected) =>
+    set((s) => {
+      const cat = s.form.category;
+      const effective =
+        cat === "alignment" ? true : professionalCleaningSelected;
+      return { form: { ...s.form, professionalCleaningSelected: effective } };
+    }),
 
   setMode: (mode) => set((s) => ({ form: { ...s.form, mode } })),
 

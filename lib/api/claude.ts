@@ -40,6 +40,7 @@ Your job is ONLY to:
 - Keep the TOOTH SHAPE LOCK (CRITICAL) block verbatim in meaning; do not relax or delete it
 - Keep the INCISAL EDGE PRESERVATION (CRITICAL) and INCISAL EDGE NON-UNIFORMITY (CRITICAL) blocks verbatim in meaning; do not relax or delete them
 - Keep the CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL) block verbatim in meaning; do not relax, delete, or idealize away its rules
+- If present, keep the PROFESSIONAL CLEANING CONSTRAINT (CRITICAL) block verbatim in meaning; do not relax, delete, or substitute bleaching/whitening language — including the ENAMEL DEFECT + CLEANING LOCK subsection
 - Keep the PERCEPTUAL CLEANLINESS (VISUAL ONLY) block verbatim in meaning; do not relax or delete it
 - Keep the INTRINSIC ENAMEL FEATURES (CRITICAL) block verbatim in meaning; do not relax or delete it
 - Do NOT add new teeth, materials, or procedures that are not already implied

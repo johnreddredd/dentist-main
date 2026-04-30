@@ -21,6 +21,9 @@ export function TreatmentSpecifics() {
   const setFullArch = useGenerateForm((s) => s.setFullArch);
   const setOrtho = useGenerateForm((s) => s.setOrtho);
   const setGumSurgery = useGenerateForm((s) => s.setGumSurgery);
+  const setProfessionalCleaning = useGenerateForm(
+    (s) => s.setProfessionalCleaning,
+  );
 
   const materials = form.category
     ? MATERIALS_BY_CATEGORY[form.category]
@@ -92,7 +95,7 @@ export function TreatmentSpecifics() {
 
       <ToothChart />
 
-      <div className="grid grid-cols-1 gap-4 rounded-2xl border border-[color:var(--color-warm-200)] bg-white p-5 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 rounded-2xl border border-[color:var(--color-warm-200)] bg-white p-5 sm:grid-cols-2 lg:grid-cols-4">
         <Toggle
           checked={form.fullArch}
           onCheckedChange={setFullArch}
@@ -111,6 +114,19 @@ export function TreatmentSpecifics() {
           label="Gum surgery"
           description="Gumline modification allowed"
         />
+        {form.category && form.category !== "whitening" ? (
+          <Toggle
+            checked={form.professionalCleaningSelected}
+            onCheckedChange={setProfessionalCleaning}
+            disabled={form.category === "alignment"}
+            label="Professional cleaning"
+            description={
+              form.category === "alignment"
+                ? "Always included after orthodontics (prophy / scale-and-polish look)"
+                : "Prophylaxis: surface stains only, not bleaching"
+            }
+          />
+        ) : null}
       </div>
     </div>
   );

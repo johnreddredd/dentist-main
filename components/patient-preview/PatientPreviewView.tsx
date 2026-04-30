@@ -31,6 +31,7 @@ function demoCase(id: string): Case {
       fullArch: true,
       orthoSelected: false,
       gumSurgerySelected: false,
+      professionalCleaningSelected: true,
       mode: "moderate",
     },
     constraints: {

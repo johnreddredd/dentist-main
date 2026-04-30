@@ -126,6 +126,8 @@ export interface TreatmentFormData {
   fullArch: boolean;
   orthoSelected: boolean;
   gumSurgerySelected: boolean;
+  /** Prophylaxis / scale-and-polish visual effect (not bleaching). Auto-on when category is alignment. */
+  professionalCleaningSelected: boolean;
 
   // Screen 4
   mode: Mode;
@@ -142,6 +144,7 @@ export const DEFAULT_FORM_DATA: TreatmentFormData = {
   fullArch: false,
   orthoSelected: false,
   gumSurgerySelected: false,
+  professionalCleaningSelected: false,
   mode: "moderate",
 };
 

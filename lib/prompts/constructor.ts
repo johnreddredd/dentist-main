@@ -1,3 +1,4 @@
+import { isProfessionalCleaningActive } from "@/lib/constraints/professional-cleaning";
 import type {
   PromptOutput,
   TreatmentConstraints,
@@ -15,6 +16,7 @@ import {
   perceptualCleanlinessVisualSection,
   postTreatmentOutcomeSection,
   preserveExactlySection,
+  professionalCleaningConstraintSection,
   toothShapeLockSection,
   treatmentIdentityLock,
   upperTeethSection,
@@ -85,6 +87,9 @@ export function buildPrompt(
     "",
     clinicalOutcomeRealismSection(),
     "",
+    ...(isProfessionalCleaningActive(form)
+      ? [professionalCleaningConstraintSection(), ""]
+      : []),
     preserveExactlySection(constraints.preservationRules),
     "",
     avoidSection(form.mode, constraints.forbiddenChanges),

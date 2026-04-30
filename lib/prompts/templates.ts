@@ -122,7 +122,7 @@ export function intrinsicEnamelIntegritySection(): string {
     "  - Do NOT alter, remove, smooth, or reduce any intrinsic enamel features (including white spots, hypocalcification, fluorosis, or opacity patterns).",
     "  - These features must remain identical in shape, size, brightness, and texture.",
     "  - They must move only with the tooth position during alignment and remain visually unchanged.",
-    "  - Cleaning may remove surface stains ONLY — it must NOT affect intrinsic enamel features.",
+    "  - Cleaning may remove surface stains, plaque, and calculus ONLY — it must NOT affect intrinsic enamel features (see ENAMEL DEFECT + CLEANING LOCK when cleaning is in scope).",
   ].join("\n");
 }
 
@@ -163,7 +163,8 @@ export function clinicalOutcomeRealismSection(): string {
     "  - Do NOT produce a perfect or textbook smile. The result must look improved, not idealized. Maintain slight natural imperfections (uneven edges, non-uniform alignment). Tooth form and apparent change from ortho follow TOOTH SHAPE LOCK (CRITICAL) above; incisal edges of anterior teeth also follow INCISAL EDGE PRESERVATION (CRITICAL) and INCISAL EDGE NON-UNIFORMITY (CRITICAL) above.",
     "",
     "ENAMEL FEATURE LOCK:",
-    "  - Do NOT remove or alter intrinsic enamel features (white spots, opacity, fluorosis). These must remain identical in shape, position, and intensity.",
+    "  - Do NOT remove or alter intrinsic enamel features (white spots, opacity, fluorosis, hypomineralization). These must remain identical in shape, position, and intensity.",
+    "  - With professional cleaning in scope, do NOT reduce defect visibility, blend defects into surrounding enamel, or homogenize enamel; stains may lift while defects stay unchanged and may look more visible.",
     "",
     "ENAMEL TEXTURE:",
     "  - Preserve natural enamel texture (ridges, surface variation). Do NOT smooth or polish teeth.",
@@ -200,6 +201,60 @@ export function perceptualCleanlinessVisualSection(): string {
     "  - Do NOT change base tooth color or uniformity.",
     "  - Teeth must appear cleaner due to lighting — not due to actual modification.",
     "  - This overrides strict preservation of capture lighting in PRESERVE EXACTLY only as needed for global photograph rendering per above — not facial identity, pose, background content, or dental anatomy.",
+  ].join("\n");
+}
+
+/**
+ * Full constraint when professional cleaning / prophylaxis is in scope (alignment auto-includes this).
+ * Supplements identity lock; does not replace TOOTH SHAPE LOCK or intrinsic enamel preservation for internal defects.
+ */
+export function professionalCleaningConstraintSection(): string {
+  return [
+    "PROFESSIONAL CLEANING CONSTRAINT (PROPHYLAXIS — CRITICAL; ONLY WHEN CLEANING IS IN SCOPE):",
+    "",
+    "PRIMARY GOAL:",
+    "  - Simulate a realistic post-prophylaxis (dental cleaning) result while preserving the patient's natural tooth shade category and anatomy.",
+    "",
+    "HARD CONSTRAINTS (NON-NEGOTIABLE):",
+    "  - Do NOT change the base tooth color (no whitening effect).",
+    "  - Do NOT shift overall shade category (e.g., A3 must remain A3 range).",
+    "  - Do NOT alter tooth shape, size, or anatomy.",
+    "  - Do NOT create unnaturally uniform or “perfect” coloration.",
+    "  - Do NOT remove intrinsic stains (e.g., white spots, enamel defects, internal discoloration).",
+    "  - Do NOT brighten the entire tooth globally.",
+    "",
+    "ENAMEL DEFECT + CLEANING LOCK (CRITICAL):",
+    "  - Cleaning may remove surface stains, plaque, and calculus only.",
+    "  - White spots, hypomineralization, fluorosis, opacity patches, and enamel defects must remain unchanged.",
+    "  - Do NOT reduce defect visibility.",
+    "  - Do NOT blend defects into surrounding enamel or “add too much” cleaning to defects.",
+    "  - Do NOT smooth defect texture.",
+    "  - Do NOT alter defect shape, opacity, or boundaries.",
+    "  - Do NOT make enamel more uniform.",
+    "  - When surrounding surface stains are removed, enamel defects may become more visible — that is acceptable.",
+    "  - Cleaning reveals enamel variation — it does NOT homogenize, whiten, smooth, or improve enamel structure.",
+    "",
+    "REQUIRED CHANGES (CLEANING EFFECT ONLY):",
+    "  - Reduce surface-level staining, especially along the gumline and between teeth.",
+    "  - Remove visible plaque/tartar buildup at cervical margins (near gums).",
+    "  - Slightly reduce intensity of yellow/orange/brown surface stains ONLY where extrinsic buildup exists.",
+    "  - Improve surface smoothness and enamel reflectivity only on sound enamel where extrinsic stain/biofilm was present (subtle prophy polish — clinical, not wax/plastic). Do NOT apply uniform polish that erases defect texture.",
+    "  - Increase natural light reflection slightly (teeth appear cleaner, not whiter).",
+    "  - Maintain natural translucency and enamel texture; keep subtle surface variation and all defect morphology.",
+    "",
+    "VISUAL DIRECTION:",
+    "  - Teeth should look “cleaner and polished,” not “whiter.”",
+    "  - Gumline should appear clearer with less buildup.",
+    "  - Interproximal areas should appear less dark/stained, but not artificially bright.",
+    "  - Overall result must still clearly resemble the same untreated tooth structure.",
+    "",
+    "FAIL CONDITIONS (MUST NEVER HAPPEN):",
+    "  - Teeth becoming significantly whiter or jumping shade tabs.",
+    "  - New stains appearing or existing intrinsic defects becoming darker or erased.",
+    "  - Loss of natural enamel texture, defect softening, or over-smoothing / plastic artificial look.",
+    "",
+    "INTERACTION:",
+    "  - Where this block applies, a subtle prophy polish at cervical/interproximal surfaces is allowed even if generic ENAMEL TEXTURE language elsewhere favors maximal preservation — stay within REQUIRED CHANGES and ENAMEL DEFECT + CLEANING LOCK above; never trade defect preservation for a “cleaner” look.",
   ].join("\n");
 }
 

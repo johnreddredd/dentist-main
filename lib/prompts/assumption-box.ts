@@ -1,3 +1,4 @@
+import { isProfessionalCleaningActive } from "@/lib/constraints/professional-cleaning";
 import type {
   AssumptionBox,
   Mode,
@@ -27,7 +28,12 @@ export function buildAssumptionBox(
     "Untreated areas: preserved exactly as-is",
   ];
 
-  // Exclusions.
+  if (isProfessionalCleaningActive(form)) {
+    bullets.push(
+      "Professional cleaning (prophylaxis): extrinsic stain, plaque, and calculus removal and subtle polish on sound enamel only — intrinsic defects unchanged (may look more visible)",
+    );
+  }
+
   const exclusions: string[] = [];
   if (!form.orthoSelected) exclusions.push("no alignment / orthodontic change");
   if (!form.gumSurgerySelected) exclusions.push("no gum surgery or gumline change");
@@ -36,14 +42,11 @@ export function buildAssumptionBox(
     // whitening, we make the "no implicit whitening elsewhere" clear.
     exclusions.push("no whitening on untreated teeth");
   }
+  if (!isProfessionalCleaningActive(form)) {
+    exclusions.push("no professional cleaning / prophylaxis effect");
+  }
   if (exclusions.length > 0) {
     bullets.push(`Excluded: ${exclusions.join("; ")}`);
-  }
-
-  if (form.category === "alignment") {
-    bullets.push(
-      "Post-preview pass: simulated professional cleaning (scaling + polish) on the alignment outcome — subtle plaque/stain reduction only; not whitening; no shape or shade change beyond extrinsic cleanup.",
-    );
   }
 
   return {

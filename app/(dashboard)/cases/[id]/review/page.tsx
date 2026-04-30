@@ -85,6 +85,7 @@ export default function CaseReviewPage(props: PageProps) {
         fullArch: false,
         orthoSelected: false,
         gumSurgerySelected: false,
+        professionalCleaningSelected: false,
         mode: "moderate",
       },
       constraints: {

@@ -5,6 +5,7 @@ import type {
   TreatmentConstraints,
   TreatmentFormData,
 } from "@/types";
+import { isProfessionalCleaningActive } from "../professional-cleaning";
 
 export interface ModalityResult {
   partial: Partial<TreatmentConstraints>;
@@ -110,8 +111,12 @@ export function evaluateTreatmentModality(
       );
       forbiddenChanges.push(
         "Shape change beyond what natural repositioning produces",
-        "Color change — alignment alone does not whiten teeth",
       );
+      if (!isProfessionalCleaningActive(form)) {
+        forbiddenChanges.push(
+          "Color change, brightening, or stain removal — alignment alone does not whiten or clean teeth",
+        );
+      }
       break;
     }
 
