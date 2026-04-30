@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateTreatmentConstraints } from "@/lib/constraints";
 import { buildAssumptionBox, buildPrompt } from "@/lib/prompts";
+import { ALIGNMENT_PROFESSIONAL_CLEANING_EDIT_PROMPT } from "@/lib/prompts/alignment-post-cleaning";
 import { generateImage, refinePreviewImage } from "@/lib/api/gemini";
 import { polishPrompt, reviewInitialDentalPreview } from "@/lib/api/claude";
 import type { GenerateRequest, GenerateResponse } from "@/types";
@@ -29,9 +30,12 @@ const runPostInitialReview =
  *   2. Gemini: first-pass outcome image from patient photo + prompt.
  *   3. (Optional) Claude (vision): before first, after second → top 3 fix bullets.
  *   4. (Optional) Gemini: edit draft using bullets + original → final image.
- *   5. Assumption box from engine (unchanged).
+ *   5. **Alignment only:** Gemini refine pass on the final alignment preview — simulated
+ *      professional cleaning (scaling + polish); subtle surface cleanup only.
+ *   6. Assumption box from engine (unchanged, plus alignment cleaning note when applicable).
  *
- * When steps 3–4 are off, `generatedImageUrl` is the first-pass image; `reviewerBullets` is [].
+ * When steps 3–4 are off, `generatedImageUrl` is the first-pass image (then step 5 if alignment);
+ * `reviewerBullets` is [].
  */
 export async function POST(req: NextRequest) {
   let body: GenerateRequest;
@@ -101,6 +105,18 @@ export async function POST(req: NextRequest) {
     generationTimeMs =
       draft.generationTimeMs + review.reviewTimeMs + final.generationTimeMs;
     modelVersion = `${draft.modelVersion}→review→${final.modelVersion}`;
+  }
+
+  if (form.category === "alignment") {
+    const preCleaning = generatedImageUrl;
+    const cleaning = await refinePreviewImage({
+      previewDataUrl: preCleaning,
+      originalDataUrl: form.photoDataUrl,
+      editPrompt: ALIGNMENT_PROFESSIONAL_CLEANING_EDIT_PROMPT,
+    });
+    generatedImageUrl = cleaning.imageUrl;
+    generationTimeMs += cleaning.generationTimeMs;
+    modelVersion = `${modelVersion}→alignment-cleaning(${cleaning.modelVersion})`;
   }
 
   const caseId = crypto.randomUUID();

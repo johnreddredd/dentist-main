@@ -40,6 +40,12 @@ export function buildAssumptionBox(
     bullets.push(`Excluded: ${exclusions.join("; ")}`);
   }
 
+  if (form.category === "alignment") {
+    bullets.push(
+      "Post-preview pass: simulated professional cleaning (scaling + polish) on the alignment outcome — subtle plaque/stain reduction only; not whitening; no shape or shade change beyond extrinsic cleanup.",
+    );
+  }
+
   return {
     bullets,
     disclaimerFooter: disclaimerFor(form.mode),
