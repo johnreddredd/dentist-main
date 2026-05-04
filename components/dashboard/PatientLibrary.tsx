@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Users, CheckCircle2, Clock, Trash2 } from "lucide-react";
+import { Users, CheckCircle2, Clock, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -114,67 +114,60 @@ export function PatientLibrary() {
             key={c.id}
             className="overflow-hidden rounded-2xl border border-[color:var(--color-warm-200)] bg-white shadow-sm transition-shadow hover:shadow-md"
           >
-            <Link
-              href={`/cases/${c.id}`}
-              className="block touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-teal-600)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-            >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-[color:var(--color-warm-100)]">
-                {c.generatedImageUrl || c.originalPhotoUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={c.generatedImageUrl ?? c.originalPhotoUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-[color:var(--color-warm-400)]">
-                    No preview
-                  </div>
-                )}
-                <div className="pointer-events-none absolute right-2 top-2 z-[1] flex gap-1.5 sm:right-3 sm:top-3">
-                  {c.approved ? (
-                    <Badge variant="success">
-                      <CheckCircle2 className="size-3" /> Approved
-                    </Badge>
+            <div className="relative isolate">
+              <Link
+                href={`/cases/${c.id}`}
+                className="relative z-0 block touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-teal-600)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              >
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-[color:var(--color-warm-100)]">
+                  {c.generatedImageUrl || c.originalPhotoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={c.generatedImageUrl ?? c.originalPhotoUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    <Badge variant="warning">
-                      <Clock className="size-3" /> Pending
-                    </Badge>
+                    <div className="flex h-full items-center justify-center text-[color:var(--color-warm-400)]">
+                      No preview
+                    </div>
                   )}
+                  <div className="pointer-events-none absolute right-2 top-2 z-[1] flex max-w-[min(70%,calc(100%-5rem))] justify-end gap-1.5 sm:right-3 sm:top-3">
+                    {c.approved ? (
+                      <Badge variant="success">
+                        <CheckCircle2 className="size-3" /> Approved
+                      </Badge>
+                    ) : (
+                      <Badge variant="warning">
+                        <Clock className="size-3" /> Pending
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </Link>
-
-            {/* Full-width remove: directly under thumbnail on all breakpoints (critical on phones) */}
-            <button
-              type="button"
-              className="touch-manipulation flex w-full flex-col items-center justify-center gap-1.5 border-y-2 border-red-100 bg-red-50 px-3 py-[1rem] text-red-900 active:bg-red-100 sm:gap-2 sm:py-[1.125rem]"
-              aria-label={`Remove ${formatPatientListName(c.patient)} from library`}
-              onClick={() => {
-                const name =
-                  formatPatientListName(c.patient) || "this patient";
-                if (
-                  typeof window !== "undefined" &&
-                  window.confirm(
-                    `Remove ${name} from your library? This cannot be undone.`,
-                  )
-                ) {
-                  removeCase(c.id);
-                }
-              }}
-            >
-              <Trash2
-                className="size-8 shrink-0"
-                strokeWidth={2.25}
-                aria-hidden
-              />
-              <span className="text-center text-lg font-bold leading-tight tracking-wide sm:text-xl">
-                Remove from library
-              </span>
-              <span className="text-center text-xs font-normal text-red-800/90">
-                This device only — cannot undo
-              </span>
-            </button>
+              </Link>
+              {/* Compact ✕ overlay: visually small glyph, full 44px Apple tap target; high contrast for iPhone */}
+              <button
+                type="button"
+                aria-label={`Remove ${formatPatientListName(c.patient)} from library`}
+                className="touch-manipulation absolute left-3 top-3 z-20 flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full bg-zinc-950/95 px-3 text-white shadow-[0_2px_10px_rgba(0,0,0,0.45)] ring-[3px] ring-white backdrop-blur-[2px] active:scale-[0.96] hover:bg-red-600 sm:left-4 sm:top-4 sm:shadow-lg"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const name =
+                    formatPatientListName(c.patient) || "this patient";
+                  if (
+                    typeof window !== "undefined" &&
+                    window.confirm(
+                      `Remove ${name} from your library? This cannot be undone.`,
+                    )
+                  ) {
+                    removeCase(c.id);
+                  }
+                }}
+              >
+                <X className="size-[15px]" strokeWidth={3.25} aria-hidden />
+              </button>
+            </div>
 
             <Link
               href={`/cases/${c.id}`}
