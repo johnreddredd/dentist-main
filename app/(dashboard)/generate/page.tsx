@@ -43,11 +43,16 @@ export default function GeneratePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ form }),
       });
+      const dataRaw = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error ?? `Generation failed (${res.status})`);
+        const data = dataRaw as { error?: string; detail?: string };
+        const msg =
+          typeof data.detail === "string" && data.detail
+            ? `${data.error ?? "Generation failed"}: ${data.detail}`
+            : (data.error ?? `Generation failed (${res.status})`);
+        throw new Error(msg);
       }
-      const data = (await res.json()) as GenerateResponse;
+      const data = dataRaw as GenerateResponse;
 
       const initialGen = createInitialGeneration(
         data.caseId,

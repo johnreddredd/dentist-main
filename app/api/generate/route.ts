@@ -62,61 +62,70 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { prompt: basePrompt } = buildPrompt(form, engine.constraints);
-  const prompt = await polishPrompt({ prompt: basePrompt });
-  const assumption = buildAssumptionBox(form, engine.constraints);
+  try {
+    const { prompt: basePrompt } = buildPrompt(form, engine.constraints);
+    const prompt = await polishPrompt({ prompt: basePrompt });
+    const assumption = buildAssumptionBox(form, engine.constraints);
 
-  const draft = await generateImage({
-    photoDataUrl: form.photoDataUrl,
-    prompt,
-  });
-
-  let generatedImageUrl = draft.imageUrl;
-  let reviewerBullets: string[] = [];
-  let draftImageUrl: string | undefined;
-  let generationTimeMs = draft.generationTimeMs;
-  let modelVersion = draft.modelVersion;
-
-  if (runPostInitialReview) {
-    const review = await reviewInitialDentalPreview({
-      originalDataUrl: form.photoDataUrl,
-      draftPreviewDataUrl: draft.imageUrl,
+    const draft = await generateImage({
+      photoDataUrl: form.photoDataUrl,
+      prompt,
     });
 
-    const editPrompt = `An expert clinical reviewer compared the original patient photo to this first-pass AI dental preview. Apply ALL THREE improvements below to the first image (the preview). Use the second image only for facial identity reference — preserve non-dental features unless a change is required to integrate the dental work.
+    let generatedImageUrl = draft.imageUrl;
+    let reviewerBullets: string[] = [];
+    let draftImageUrl: string | undefined;
+    let generationTimeMs = draft.generationTimeMs;
+    let modelVersion = draft.modelVersion;
+
+    if (runPostInitialReview) {
+      const review = await reviewInitialDentalPreview({
+        originalDataUrl: form.photoDataUrl,
+        draftPreviewDataUrl: draft.imageUrl,
+      });
+
+      const editPrompt = `An expert clinical reviewer compared the original patient photo to this first-pass AI dental preview. Apply ALL THREE improvements below to the first image (the preview). Use the second image only for facial identity reference — preserve non-dental features unless a change is required to integrate the dental work.
 
 1. ${review.bullets[0]}
 2. ${review.bullets[1]}
 3. ${review.bullets[2]}`;
 
-    const final = await refinePreviewImage({
-      previewDataUrl: draft.imageUrl,
-      originalDataUrl: form.photoDataUrl,
-      editPrompt,
-    });
+      const final = await refinePreviewImage({
+        previewDataUrl: draft.imageUrl,
+        originalDataUrl: form.photoDataUrl,
+        editPrompt,
+      });
 
-    generatedImageUrl = final.imageUrl;
-    reviewerBullets = [...review.bullets];
-    draftImageUrl = draft.imageUrl;
-    generationTimeMs =
-      draft.generationTimeMs + review.reviewTimeMs + final.generationTimeMs;
-    modelVersion = `${draft.modelVersion}→review→${final.modelVersion}`;
+      generatedImageUrl = final.imageUrl;
+      reviewerBullets = [...review.bullets];
+      draftImageUrl = draft.imageUrl;
+      generationTimeMs =
+        draft.generationTimeMs + review.reviewTimeMs + final.generationTimeMs;
+      modelVersion = `${draft.modelVersion}→review→${final.modelVersion}`;
+    }
+
+    const caseId = crypto.randomUUID();
+
+    const response: GenerateResponse = {
+      caseId,
+      generatedImageUrl,
+      draftImageUrl,
+      reviewerBullets,
+      prompt,
+      constraints: engine.constraints,
+      assumption,
+      issues: engine.issues,
+      generationTimeMs,
+      modelVersion,
+    };
+
+    return NextResponse.json(response, { status: 200 });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    console.error("[api/generate]", detail, err);
+    return NextResponse.json(
+      { error: "Generation failed", detail },
+      { status: 502 },
+    );
   }
-
-  const caseId = crypto.randomUUID();
-
-  const response: GenerateResponse = {
-    caseId,
-    generatedImageUrl,
-    draftImageUrl,
-    reviewerBullets,
-    prompt,
-    constraints: engine.constraints,
-    assumption,
-    issues: engine.issues,
-    generationTimeMs,
-    modelVersion,
-  };
-
-  return NextResponse.json(response, { status: 200 });
 }

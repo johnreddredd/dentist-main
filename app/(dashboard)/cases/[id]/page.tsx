@@ -116,8 +116,16 @@ export default function CaseDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ form: caseData.treatmentData }),
       });
-      if (!res.ok) throw new Error((await res.json())?.error ?? "Failed");
-      const data = (await res.json()) as GenerateResponse;
+      const dataRaw = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const data = dataRaw as { error?: string; detail?: string };
+        const msg =
+          typeof data.detail === "string" && data.detail
+            ? `${data.error ?? "Generation failed"}: ${data.detail}`
+            : (data.error ?? `Generation failed (${res.status})`);
+        throw new Error(msg);
+      }
+      const data = dataRaw as GenerateResponse;
       const regenGen = createInitialGeneration(
         caseData.id,
         data.generatedImageUrl,

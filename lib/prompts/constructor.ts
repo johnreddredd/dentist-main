@@ -6,6 +6,8 @@ import type {
 } from "@/types";
 import {
   avoidSection,
+  ceramicVeneerBiteOcclusionMandatorySection,
+  ceramicVeneerBiteOcclusionRecapSection,
   clinicalOutcomeRealismSection,
   colorAndTextureSection,
   gumsSection,
@@ -44,6 +46,9 @@ export function buildPrompt(
     forbiddenChanges: constraints.forbiddenChanges,
   });
 
+  const ceramicBiteMandatory = ceramicVeneerBiteOcclusionMandatorySection(form);
+  const ceramicBiteRecap = ceramicVeneerBiteOcclusionRecapSection(form);
+
   const prompt = [
     `${constraints.treatmentType.toUpperCase()} — TREATMENT OUTCOME DOCUMENTATION`,
     "",
@@ -51,6 +56,7 @@ export function buildPrompt(
     "",
     postTreatmentOutcomeSection(form),
     "",
+    ...(ceramicBiteMandatory ? [ceramicBiteMandatory, ""] : []),
     "TREATMENT REPRESENTED:",
     `  - ${constraints.treatmentType}`,
     `  - Shade target: ${constraints.shadeRange}`,
@@ -74,19 +80,23 @@ export function buildPrompt(
     "",
     gumsSection(form.gumSurgerySelected),
     "",
-    colorAndTextureSection({
-      shadeRange: constraints.shadeRange,
-      mode: form.mode,
-    }),
+    colorAndTextureSection(
+      {
+        shadeRange: constraints.shadeRange,
+        mode: form.mode,
+      },
+      form,
+    ),
     "",
-    intrinsicEnamelIntegritySection(),
+    intrinsicEnamelIntegritySection(form),
     "",
-    toothShapeLockSection(),
+    toothShapeLockSection(form),
     "",
-    incisalEdgePreservationSection(),
+    incisalEdgePreservationSection(form),
     "",
-    clinicalOutcomeRealismSection(),
+    clinicalOutcomeRealismSection(form),
     "",
+    ...(ceramicBiteRecap ? [ceramicBiteRecap, ""] : []),
     ...(isProfessionalCleaningActive(form)
       ? [professionalCleaningConstraintSection(), ""]
       : []),

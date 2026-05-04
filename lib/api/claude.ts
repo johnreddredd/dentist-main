@@ -36,13 +36,17 @@ Your job is ONLY to:
 - Prefer positive rendering language per PRESERVATION LANGUAGE where you touch phrasing
 - Keep every clinical constraint: allowed changes, forbidden changes, and preservation rules must remain equivalent in meaning
 - You MUST keep all section headers and the TREATMENT IDENTITY LOCK block; do not delete or relax constraints
-- Keep the POST-TREATMENT OUTCOME (CRITICAL) block; it must remain at least as strict about finished results and no fixed braces/hardware — including OCCLUSION / BITE and OCCLUSION REALISM LOCK lines when present
-- Keep the TOOTH SHAPE LOCK (CRITICAL) block verbatim in meaning; do not relax or delete it
-- Keep the INCISAL EDGE PRESERVATION (CRITICAL) and INCISAL EDGE NON-UNIFORMITY (CRITICAL) blocks verbatim in meaning; do not relax or delete them
-- Keep the CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL) block verbatim in meaning; do not relax, delete, or idealize away its rules
+- Keep the POST-TREATMENT OUTCOME (CRITICAL) block; it must remain at least as strict about finished results and no fixed braces/hardware — including OCCLUSION / BITE lines when present
+- When present, keep OCCLUSION REALISM LOCK (VENEERS / CROWNS / CERAMIC — FUNCTIONAL FIRST) verbatim in meaning — it requires plausible functional overlap/overjet and coherent arches for crowns and bridges as well as veneers; do not substitute the generic non-ceramic OCCLUSION REALISM LOCK
+- If present, keep the BITE / OCCLUSION (MANDATORY — VENEERS / CROWNS / CERAMIC RESTORATIONS) block verbatim in meaning (PRIORITY / CONFLICT RESOLUTION, bullets, HARD INVALIDATION, CONSTRAINTS, FINAL RULE); do not delete or relax overbite/overjet, contacts, arch curvature, midline, no floating or clipping teeth
+- If present, keep BITE RECAP (VENEERS / CROWNS / CERAMICS — REPEAT BEFORE RENDER) and BITE & OCCLUSION VALIDATION (VENEERS / CROWNS / CERAMICS — HARD GATE) verbatim in meaning
+- Keep the COLOR & TEXTURE block verbatim in meaning; if the prompt uses COLOR & TEXTURE (CERAMIC / VENEER — MODERATE OR ASPIRATIONAL), keep that block verbatim in meaning (do not substitute the generic three-line COLOR & TEXTURE)
+- Keep the TOOTH SHAPE LOCK (CRITICAL) block verbatim in meaning; do not relax or delete it OR, if the prompt instead uses TOOTH SHAPE & CONTOUR (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL), keep that ceramic/veneer block verbatim in meaning
+- Keep the INCISAL EDGE PRESERVATION (CRITICAL) and INCISAL EDGE NON-UNIFORMITY (CRITICAL) blocks verbatim in meaning; do not relax or delete them OR, if the prompt uses INCISAL CHARACTER (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL), keep that block verbatim in meaning
+- Keep the CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL) block verbatim in meaning; do not relax, delete, or idealize away its rules OR, if the prompt uses CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL OR — CONSERVATIVE), keep that ceramic/veneer block verbatim in meaning including BITE & OCCLUSION VALIDATION
 - If present, keep the PROFESSIONAL CLEANING CONSTRAINT (CRITICAL) block verbatim in meaning; do not relax, delete, or substitute bleaching/whitening language — including the ENAMEL DEFECT + CLEANING LOCK subsection
 - Keep the PERCEPTUAL CLEANLINESS (VISUAL ONLY) block verbatim in meaning; do not relax or delete it
-- Keep the INTRINSIC ENAMEL FEATURES (CRITICAL) block verbatim in meaning; do not relax or delete it
+- Keep the INTRINSIC ENAMEL FEATURES (CRITICAL) block verbatim in meaning; do not relax or delete it OR, if the prompt uses INTRINSIC ENAMEL & SURFACE (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL), keep that block verbatim in meaning
 - Do NOT add new teeth, materials, or procedures that are not already implied
 - Do NOT add marketing language
 

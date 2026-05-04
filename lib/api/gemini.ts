@@ -2,12 +2,90 @@ import { GoogleGenAI } from "@google/genai";
 import { GEMINI_EDIT_SCOPE_LOCK } from "@/lib/prompts/edit-scope-preservation";
 
 /**
- * Gemini image model via Google AI (API key).
- * Default: `gemini-3-pro-image-preview` — "Gemini 3 Pro Image" (Nano Banana Pro), image + text in, image out.
- * Override with `GEMINI_MODEL` (e.g. `gemini-2.5-flash-image` for the lighter tier).
+ * Gemini image generation — Google AI Studio **or** Vertex AI (`@google/genai`).
+ *
+ * **Developer API (default):** set `GEMINI_API_KEY` or `GOOGLE_API_KEY`.
+ *
+ * **Vertex AI — Express (API key):** set `GEMINI_USE_VERTEX=true` (or `GOOGLE_GENAI_USE_VERTEXAI=true`)
+ * and `GEMINI_API_KEY` / `GOOGLE_API_KEY` with your Vertex Express key.
+ * If `GOOGLE_CLOUD_PROJECT` is also present (e.g. platform default), add `GEMINI_VERTEX_EXPRESS=true`
+ * so the client uses the API key and not ADC+project.
+ *
+ * **Vertex AI — project + ADC:** set `GEMINI_USE_VERTEX=true`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`
+ * (e.g. `us-central1`), and credentials via `GOOGLE_APPLICATION_CREDENTIALS` (or workload identity on GCP).
+ *
+ * Default model: `gemini-3-pro-image-preview`. Override with `GEMINI_MODEL`.
  *
  * @see https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image-preview
+ * @see https://cloud.google.com/vertex-ai/docs
  */
+
+function envTruthy(name: string): boolean {
+  const v = process.env[name]?.trim().toLowerCase();
+  return v === "1" || v === "true" || v === "yes";
+}
+
+function useVertexAI(): boolean {
+  return (
+    envTruthy("GEMINI_USE_VERTEX") ||
+    envTruthy("GOOGLE_GENAI_USE_VERTEXAI")
+  );
+}
+
+function apiKeyFromEnv(): string | undefined {
+  const a = process.env.GOOGLE_API_KEY?.trim();
+  const b = process.env.GEMINI_API_KEY?.trim();
+  return a || b || undefined;
+}
+
+/**
+ * Single auth surface for the SDK. Avoids relying on mixed implicit env (project + key) inside the client.
+ */
+function createGoogleGenAI(): GoogleGenAI {
+  const vertex = useVertexAI();
+  const apiKey = apiKeyFromEnv();
+  const project = process.env.GOOGLE_CLOUD_PROJECT?.trim();
+  const location =
+    process.env.GOOGLE_CLOUD_LOCATION?.trim() || "us-central1";
+
+  if (!vertex) {
+    return new GoogleGenAI({ apiKey });
+  }
+
+  const forceExpress = envTruthy("GEMINI_VERTEX_EXPRESS");
+
+  if (project && !forceExpress) {
+    return new GoogleGenAI({
+      vertexai: true,
+      project,
+      location,
+    });
+  }
+
+  if (apiKey) {
+    return new GoogleGenAI({
+      vertexai: true,
+      apiKey,
+    });
+  }
+
+  throw new Error(
+    "Vertex AI is enabled (GEMINI_USE_VERTEX or GOOGLE_GENAI_USE_VERTEXAI) but no credentials: set GOOGLE_CLOUD_PROJECT (+ ADC) or GEMINI_API_KEY / GOOGLE_API_KEY (Express). For Express when GOOGLE_CLOUD_PROJECT is also set, add GEMINI_VERTEX_EXPRESS=true.",
+  );
+}
+
+function hasConfiguredCredentials(): boolean {
+  if (!useVertexAI()) {
+    return !!apiKeyFromEnv();
+  }
+  const apiKey = apiKeyFromEnv();
+  const project = process.env.GOOGLE_CLOUD_PROJECT?.trim();
+  const forceExpress = envTruthy("GEMINI_VERTEX_EXPRESS");
+  if (forceExpress) {
+    return !!apiKey;
+  }
+  return !!(apiKey || project);
+}
 
 export interface GenerateImageArgs {
   photoDataUrl: string;
@@ -44,9 +122,8 @@ export async function generateImage(
   args: GenerateImageArgs,
 ): Promise<GenerateImageResult> {
   const start = Date.now();
-  const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
+  if (!hasConfiguredCredentials()) {
     await sleep(1200);
     return {
       imageUrl: args.photoDataUrl,
@@ -62,7 +139,7 @@ export async function generateImage(
   }
 
   const modelId = process.env.GEMINI_MODEL ?? DEFAULT_IMAGE_MODEL;
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = createGoogleGenAI();
 
   // Image editing: reference photo + full clinical prompt (per Google docs).
   // Gemini 3 Pro Image supports 2K output via imageConfig (optional).
@@ -114,9 +191,8 @@ export async function refinePreviewImage(
   args: RefinePreviewImageArgs,
 ): Promise<GenerateImageResult> {
   const start = Date.now();
-  const apiKey = process.env.GEMINI_API_KEY;
 
-  if (!apiKey) {
+  if (!hasConfiguredCredentials()) {
     await sleep(1200);
     return {
       imageUrl: args.previewDataUrl,
@@ -136,7 +212,7 @@ export async function refinePreviewImage(
   }
 
   const modelId = process.env.GEMINI_MODEL ?? DEFAULT_IMAGE_MODEL;
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = createGoogleGenAI();
 
   const instruction = `Edit the first image (current dental smile preview) photorealistically using the instruction below. The second image is the original pre-treatment patient photo — use it only to preserve facial identity, skin, and non-dental features; do not revert the intended treatment unless asked. The result must remain a POST-TREATMENT outcome only: do not depict fixed braces, brackets, archwires, or other orthodontic appliances on the teeth unless the dentist explicitly requests otherwise.
 

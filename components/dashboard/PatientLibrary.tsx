@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Users, CheckCircle2, Clock } from "lucide-react";
+import { Users, CheckCircle2, Clock, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,7 @@ type Filter = {
 
 export function PatientLibrary() {
   const cases = useCasesStore((s) => s.cases);
+  const removeCase = useCasesStore((s) => s.removeCase);
   const [filter, setFilter] = React.useState<Filter>({
     mode: "all",
     category: "all",
@@ -109,17 +110,20 @@ export function PatientLibrary() {
 
       <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((c) => (
-          <li key={c.id}>
+          <li
+            key={c.id}
+            className="overflow-hidden rounded-2xl border border-[color:var(--color-warm-200)] bg-white shadow-sm transition-shadow hover:shadow-md"
+          >
             <Link
               href={`/cases/${c.id}`}
-              className="group block overflow-hidden rounded-2xl border border-[color:var(--color-warm-200)] bg-white transition-all hover:-translate-y-0.5 hover:shadow-md"
+              className="block touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-teal-600)] focus-visible:ring-offset-2 focus-visible:ring-offset-white"
             >
               <div className="relative aspect-[4/3] w-full overflow-hidden bg-[color:var(--color-warm-100)]">
                 {c.generatedImageUrl || c.originalPhotoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={c.generatedImageUrl ?? c.originalPhotoUrl}
-                    alt="Preview"
+                    alt=""
                     className="h-full w-full object-cover"
                   />
                 ) : (
@@ -127,7 +131,7 @@ export function PatientLibrary() {
                     No preview
                   </div>
                 )}
-                <div className="absolute right-2 top-2 flex gap-1.5">
+                <div className="pointer-events-none absolute right-2 top-2 z-[1] flex gap-1.5 sm:right-3 sm:top-3">
                   {c.approved ? (
                     <Badge variant="success">
                       <CheckCircle2 className="size-3" /> Approved
@@ -139,14 +143,51 @@ export function PatientLibrary() {
                   )}
                 </div>
               </div>
-              <div className="space-y-2 p-4">
+            </Link>
+
+            {/* Full-width remove: directly under thumbnail on all breakpoints (critical on phones) */}
+            <button
+              type="button"
+              className="touch-manipulation flex w-full flex-col items-center justify-center gap-1.5 border-y-2 border-red-100 bg-red-50 px-3 py-[1rem] text-red-900 active:bg-red-100 sm:gap-2 sm:py-[1.125rem]"
+              aria-label={`Remove ${formatPatientListName(c.patient)} from library`}
+              onClick={() => {
+                const name =
+                  formatPatientListName(c.patient) || "this patient";
+                if (
+                  typeof window !== "undefined" &&
+                  window.confirm(
+                    `Remove ${name} from your library? This cannot be undone.`,
+                  )
+                ) {
+                  removeCase(c.id);
+                }
+              }}
+            >
+              <Trash2
+                className="size-8 shrink-0"
+                strokeWidth={2.25}
+                aria-hidden
+              />
+              <span className="text-center text-lg font-bold leading-tight tracking-wide sm:text-xl">
+                Remove from library
+              </span>
+              <span className="text-center text-xs font-normal text-red-800/90">
+                This device only — cannot undo
+              </span>
+            </button>
+
+            <Link
+              href={`/cases/${c.id}`}
+              className="block touch-manipulation border-t border-[color:var(--color-warm-200)] px-4 py-3 transition-colors hover:bg-[color:var(--color-warm-50)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[color:var(--color-teal-600)]"
+            >
+              <div className="space-y-2">
                 <p className="line-clamp-1 text-sm font-semibold text-[color:var(--color-warm-900)]">
                   {formatPatientListName(c.patient)}
                 </p>
                 <p className="line-clamp-1 text-xs text-[color:var(--color-warm-500)]">
                   {c.constraints?.treatmentType ?? "Treatment plan"}
                 </p>
-                <div className="flex items-center justify-between text-xs text-[color:var(--color-warm-500)]">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[color:var(--color-warm-500)]">
                   <Badge
                     variant={
                       c.mode === "aspirational"
@@ -161,6 +202,9 @@ export function PatientLibrary() {
                   <CaseCreatedLabel createdAt={c.createdAt} />
                 </div>
               </div>
+              <p className="mt-2 text-xs font-medium text-[color:var(--color-teal-700)]">
+                Tap to open case →
+              </p>
             </Link>
           </li>
         ))}

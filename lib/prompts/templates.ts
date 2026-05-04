@@ -1,4 +1,8 @@
 import type { Mode, TreatmentFormData } from "@/types";
+import {
+  isCeramicRestorationBiteGuidance,
+  isCeramicVeneerModerateOrAspirational,
+} from "./ceramic-veneer-plan";
 
 /**
  * Master prompt sections.
@@ -9,7 +13,7 @@ import type { Mode, TreatmentFormData } from "@/types";
  */
 
 export function postTreatmentOutcomeSection(
-  form: Pick<TreatmentFormData, "category" | "orthoSelected">,
+  form: Pick<TreatmentFormData, "category" | "material" | "orthoSelected">,
 ): string {
   const lines = [
     "POST-TREATMENT OUTCOME (CRITICAL):",
@@ -24,17 +28,87 @@ export function postTreatmentOutcomeSection(
     form.category !== "whitening" &&
     (form.category === "alignment" ||
       form.category === "makeover" ||
-      form.orthoSelected);
+      form.orthoSelected ||
+      isCeramicRestorationBiteGuidance(form));
 
   if (biteAndOrthoGuidance) {
     lines.push(
-      "  - OCCLUSION / BITE: If BEFORE shows malocclusion visible in the smile (deep bite, excessive overjet, anterior crossbite, open bite, edge-to-edge tendency, or clear upper–lower arch mismatch), correct AFTER toward a believable post-orthodontic relationship—realistic clinical finishing for fixed braces or aligners, age-appropriate, not cartoon-idealized.",
-      "  - Coordinate visible upper and lower arch relationship where both show: midlines, overbite/overjet, and occlusal plane should look like plausible comprehensive treatment, not a single-arch fantasy.",
-      "  - OCCLUSION REALISM LOCK: Correct overbite/overjet only to a believable post-orthodontic range. Do not create a perfect textbook bite. Preserve natural minor asymmetry and allow slight residual overlap. Lower incisors should remain naturally visible or partially covered based on the original bite. Do not over-open, flatten, or idealize the bite.",
+      "  - OCCLUSION / BITE: If BEFORE shows malocclusion visible in the smile — including excessive OVERBITE (deep bite / too much vertical overlap of upper over lower incisors) or UNDERBITE / reverse overjet (lower incisors ahead of or edge-to-edge with uppers, Class III tendency in the smile), plus excessive overjet the other way, anterior crossbite, open bite, edge-to-edge tendency, or clear upper–lower arch mismatch — correct AFTER toward a believable improved relationship. Use orthodontics when selected; when veneers, crowns (full or partial coverage), ceramic units, implants, bridges, or similar are in the plan, plausible improvement may also come from restorative incisal position, crown height, emergence profile, and re-established occlusal stops visible in the photo. Age-appropriate and clinically plausible, not cartoon-idealized.",
+      "  - Coordinate visible upper and lower arch relationship where both show: midlines, overbite/overjet, and occlusal plane should read like comprehensive care — including restorative correction of overbite or underbite in the smile — not a single-arch fantasy.",
     );
+    if (isCeramicRestorationBiteGuidance(form)) {
+      lines.push(
+        "  - OCCLUSION REALISM LOCK (VENEERS / CROWNS / CERAMIC — FUNCTIONAL FIRST): No orthognathic surgery or cartoon jaw displacement. Within that limit, you MUST still deliver a clinically believable, functional anterior relationship: visible ~1–2 mm overbite and ~1–2 mm overjet where incisors show, teeth closing without interdental food gaps or interpenetration, and upper–lower curves that work together — including full-coverage crowns, implant crowns, and fixed bridge units in the smile. Minor natural asymmetry is required; leaving the patient visibly edge-to-edge, in anterior crossbite, open-bite when closing, or with a single-arch \"Hollywood\" row while the opposing arch still collides or floats is NOT acceptable.",
+        "  - INDIRECT RESTORATIONS & BITE DISPLAY (VENEERS / CROWNS / BRIDGE / IMPLANT CROWNS): For porcelain, zirconia, e.max, PFM-equivalent, or similar — including single crowns, veneer cases, and fixed replacements — use restorative incisal length, axial inclination, contour, and contact placement so the photograph reads as a finished case with a corrected bite display — not just whiter/changed facings or isolated units on a still-broken occlusion. When BEFORE shows deep bite, underbite tendency, or edge-to-edge in the smile, AFTER must move meaningfully toward the functional targets in the BITE / OCCLUSION (MANDATORY) block (still within prosthodontic/restorative range, not skeletal leap).",
+      );
+    } else {
+      lines.push(
+        "  - OCCLUSION REALISM LOCK: Improve only into a believable real-world range. Do not create a perfect textbook bite or major surgical jaw advancement/setback. Preserve natural minor asymmetry and allow slight residual overlap where realistic. Lower incisors should stay believable relative to the starting relationship unless a modest shift is clearly indicated by the treatment type — do not over-open, flatten, or idealize the bite.",
+      );
+    }
   }
 
   return lines.join("\n");
+}
+
+/**
+ * Mandatory bite/occlusion checklist for veneers, crowns, ceramic units, and fixed implant/bridge prostheses (not whitening/bonding-only).
+ */
+export function ceramicVeneerBiteOcclusionMandatorySection(
+  form: Pick<TreatmentFormData, "category" | "material">,
+): string | null {
+  if (!isCeramicRestorationBiteGuidance(form)) return null;
+  return [
+    "BITE / OCCLUSION (MANDATORY — VENEERS / CROWNS / CERAMIC RESTORATIONS):",
+    "",
+    "PRIORITY / CONFLICT RESOLUTION:",
+    "This section is NON-NEGOTIABLE for any indirect plan in scope: veneers, full/partial crowns, zirconia/e.max/PFM-style ceramics, implant crowns, and fixed bridgework visible in the smile. If any softer wording elsewhere suggests \"minimal bite change\" or \"do not idealize the bite\", it does NOT excuse edge-to-edge incisors, crossbite, open bite on closure, floating contacts, or interpenetrating teeth. You still avoid cartoon jaw surgery — but you MUST fix the bite relationship as below.",
+    "",
+    "Adjust BOTH upper and lower teeth so they meet in a natural, functional occlusion.",
+    "",
+    "- Upper incisors must slightly overlap lower incisors (natural overbite ~1–2 mm visually).",
+    "- Maintain slight horizontal spacing (overjet ~1–2 mm), not edge-to-edge.",
+    "- Teeth must close together naturally with no visible gaps and no collisions.",
+    "- Contact points should align consistently across the arch.",
+    "- Lower teeth should follow the curvature of the upper arch.",
+    "- Midline should be centered or minimally deviated in a natural way.",
+    "",
+    "HARD INVALIDATION (reject the render if any apply):",
+    "- Anterior edge-to-edge or underbite/reverse overjet when a natural overjet is required.",
+    "- Open bite appearance between anteriors when the patient is shown with teeth nearly closed.",
+    "- Obvious interproximal black triangles or daylight where solid interproximal contact should exist for a finished case.",
+    "- Teeth volumes intersecting/colliding or clearly impossible to close.",
+    "- Only one arch \"done\" while the opposing arch still contradicts a workable bite (including crown or bridge units that ignore the opposing arch).",
+    "",
+    "CONSTRAINTS:",
+    "- Do not modify teeth in isolation; ensure the entire bite relationship is coherent.",
+    "- Do not create floating teeth or overlapping/clipping teeth.",
+    "- Avoid perfectly flat or identical alignment; maintain slight natural variation.",
+    "",
+    "FINAL RULE:",
+    "The result must look like a clinically functional bite where the patient can comfortably close their teeth — including crown, bridge, and implant-supported units meeting natural stops.",
+  ].join("\n");
+}
+
+/** Short recap so the model sees bite rules again after long middle sections. */
+export function ceramicVeneerBiteOcclusionRecapSection(
+  form: Pick<TreatmentFormData, "category" | "material">,
+): string | null {
+  if (!isCeramicRestorationBiteGuidance(form)) return null;
+  return [
+    "BITE RECAP (VENEERS / CROWNS / CERAMICS — REPEAT BEFORE RENDER):",
+    "  - Deliver ~1–2 mm overbite and ~1–2 mm overjet on visible anteriors, coherent contacts, lower arch following upper curve, believable midline — full-arch bite coherence for crowns and bridges as well as veneers; no edge-to-edge/open bite/collisions/floating teeth.",
+    "  - The detailed checklist and INVALIDATION rules in BITE / OCCLUSION (MANDATORY — VENEERS / CROWNS / CERAMIC RESTORATIONS) above are still binding.",
+  ].join("\n");
+}
+
+function ceramicRestorationBiteValidationLines(): string[] {
+  return [
+    "",
+    "BITE & OCCLUSION VALIDATION (VENEERS / CROWNS / CERAMICS — HARD GATE):",
+    "  - INVALID if the image contradicts the BITE / OCCLUSION (MANDATORY) block: wrong overbite/overjet, edge-to-edge when overlap is required, crossbite, open bite on closure, gaps at contacts, colliding roots/crowns, or single-arch fantasy vs opposing arch — applies equally to full crowns and fixed prostheses.",
+    "  - These rules override generic NON-IDEAL FINISH or \"do not idealize the bite\" lines where they would excuse a non-functional occlusion on indirect restorations.",
+  ];
 }
 
 export function treatmentIdentityLock(args: {
@@ -96,10 +170,26 @@ export function gumsSection(gumSurgerySelected: boolean): string {
     : "GUMS:\n  - Preserve exactly. No changes to gingival zenith, gum display, or gumline contour.";
 }
 
-export function colorAndTextureSection(args: {
-  shadeRange: string;
-  mode: Mode;
-}): string {
+export function colorAndTextureSection(
+  args: {
+    shadeRange: string;
+    mode: Mode;
+  },
+  form?: TreatmentFormData,
+): string {
+  if (form && isCeramicVeneerModerateOrAspirational(form)) {
+    const aspirational = args.mode === "aspirational";
+    return [
+      "COLOR & TEXTURE (CERAMIC / VENEER — MODERATE OR ASPIRATIONAL):",
+      `  - Target shade: ${args.shadeRange} — restored surfaces must read in this VITA family (often BL1-class when selected); it must not look like pre-op color showing through.`,
+      aspirational
+        ? "  - ASPIRATIONAL: clear residual yellow, brown, olive, or grey chroma from the BEFORE on veneered/ceramic units; premium high-value ceramic, more uniform brilliance, minimal but believable gradation (cervical warmth, incisal translucency, slight neighbor steps)."
+        : "  - MODERATE: remove obvious pre-op discoloration on those units; refined white ceramic centered on the selected shade with a bit more natural variation tooth-to-tooth than Aspirational.",
+      "  - Keep subtle optical variation so the arch is photographic, not flat — but the dominant read is still the chosen shade, not stained natural enamel.",
+      "  - Believable ceramic gloss and highlights consistent with the scene lighting.",
+    ].join("\n");
+  }
+
   const modeInstruction: Record<Mode, string> = {
     conservative:
       "Keep minor color variation tooth-to-tooth. Preserve age-appropriate wear and slight asymmetry. Do NOT produce a Hollywood-white result.",
@@ -116,7 +206,16 @@ export function colorAndTextureSection(args: {
 }
 
 /** Hypocalcification, fluorosis, etc. — preserve through cleaning, whitening, and ortho. */
-export function intrinsicEnamelIntegritySection(): string {
+export function intrinsicEnamelIntegritySection(form?: TreatmentFormData): string {
+  if (form && isCeramicVeneerModerateOrAspirational(form)) {
+    return [
+      "INTRINSIC ENAMEL & SURFACE (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL):",
+      "  - Teeth NOT in the treatment plan: preserve intrinsic enamel character as in the BEFORE (white spots, opacity, etc.) unless another explicit rule applies.",
+      "  - Veneered / ceramic-restored teeth (per ALLOWED CHANGES): do NOT carry pre-operative stains, mottling, or yellow–brown body color through the restoration.",
+      "  - Render new porcelain/zirconia-style surfaces at the chosen shade; controlled ceramic microtexture and glaze — not a photocopy of defective natural enamel on those units.",
+      "  - Prophylaxis / cleaning clauses apply only where that scope is active; they never require retaining chroma from old enamel under planned ceramics.",
+    ].join("\n");
+  }
   return [
     "INTRINSIC ENAMEL FEATURES (CRITICAL):",
     "  - Do NOT alter, remove, smooth, or reduce any intrinsic enamel features (including white spots, hypocalcification, fluorosis, or opacity patterns).",
@@ -126,7 +225,15 @@ export function intrinsicEnamelIntegritySection(): string {
   ].join("\n");
 }
 
-export function toothShapeLockSection(): string {
+export function toothShapeLockSection(form?: TreatmentFormData): string {
+  if (form && isCeramicVeneerModerateOrAspirational(form)) {
+    return [
+      "TOOTH SHAPE & CONTOUR (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL):",
+      "  - Untreated natural teeth: preserve outline, width, and length as in the BEFORE.",
+      "  - Veneer / ceramic units: design believable new contours — you are not bound to copy pre-op anatomy. Aim for realistic premium-lab proportions with slight asymmetry and neighbor-to-neighbor variation.",
+      "  - Avoid identical blocky units or perfectly synchronized geometry; the smile should look human and photographable, not novelty-perfect.",
+    ].join("\n");
+  }
   return [
     "TOOTH SHAPE LOCK (CRITICAL):",
     "  - Preserve the exact natural tooth anatomy.",
@@ -136,7 +243,14 @@ export function toothShapeLockSection(): string {
   ].join("\n");
 }
 
-export function incisalEdgePreservationSection(): string {
+export function incisalEdgePreservationSection(form?: TreatmentFormData): string {
+  if (form && isCeramicVeneerModerateOrAspirational(form)) {
+    return [
+      "INCISAL CHARACTER (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL):",
+      "  - Untreated anteriors: preserve incisal edge character from the BEFORE.",
+      "  - Ceramic / veneer fronts: incisal lines may be re-established for a believable porcelain finish; avoid one perfectly straight ruled line across all units — keep subtle vertical scatter and slight irregularity between neighbors.",
+    ].join("\n");
+  }
   return [
     "INCISAL EDGE PRESERVATION (CRITICAL):",
     "  - Do NOT alter the shape, smoothness, or uniformity of the incisal edges (bottom edges of the front teeth).",
@@ -152,7 +266,42 @@ export function incisalEdgePreservationSection(): string {
 }
 
 /** Severity scaling, non-ideal finish, enamel/gum/occlusion realism, validation gate. */
-export function clinicalOutcomeRealismSection(): string {
+export function clinicalOutcomeRealismSection(form?: TreatmentFormData): string {
+  if (form && isCeramicVeneerModerateOrAspirational(form)) {
+    const aspir = form.mode === "aspirational";
+    return [
+      "CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL — CERAMIC / VENEER — MODERATE OR ASPIRATIONAL):",
+      "",
+      "SHADE ON RESTORED UNITS:",
+      aspir
+        ? "  - INVALID if obvious BEFORE yellow, brown, grey, or patchy stain still reads on veneered/ceramic teeth. Aspirational: dominant high-value ceramic aligned to the selected shade (typically BL-class when chosen), with only minimal believable gradation."
+        : "  - INVALID if clear pre-op discoloration still dominates restored surfaces. Moderate: centered on the selected VITA with believable ceramic variation — not the old natural chroma.",
+      "",
+      "SHAPE / FINISH:",
+      "  - Avoid textbook-perfect symmetry and identical units; keep subtle human variation.",
+      "  - Restored surfaces: believable ceramic polish — not mandatory preservation of pre-op enamel defects on those teeth.",
+      "",
+      "UNTREATED STRUCTURES:",
+      "  - Gingiva, lips, face, and teeth outside the plan follow normal preservation rules unless the identity lock allows change.",
+      "",
+      "PERCEPTUAL CLEANLINESS:",
+      "  - May supplement highlight/shadow clarity only; do not use it as an excuse to leave chroma from the BEFORE on ceramics. The shade shift comes from the restorations themselves.",
+      ...ceramicRestorationBiteValidationLines(),
+    ].join("\n");
+  }
+  if (form && isCeramicRestorationBiteGuidance(form)) {
+    return [
+      "CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL — CERAMIC / VENEER — CONSERVATIVE):",
+      "",
+      "NON-IDEAL FINISH:",
+      "  - Avoid Hollywood-perfect uniformity; keep slight natural variation compatible with conservative mode.",
+      "",
+      "OCCLUSION ON INDIRECT RESTORATIONS (NOT THE GENERIC ORTHO LINE):",
+      "  - A bad bite is INVALID even in conservative mode. You MUST still satisfy the BITE / OCCLUSION (MANDATORY — VENEERS / CROWNS / CERAMIC RESTORATIONS) block and the VENEERS / CROWNS / CERAMIC OCCLUSION REALISM LOCK in POST-TREATMENT OUTCOME.",
+      "  - Generic \"OCCLUSION REALISM: do not create a perfect bite\" elsewhere does NOT excuse edge-to-edge, open bite, crossbite, collisions, or floating contacts on crowns, bridges, or veneers.",
+      ...ceramicRestorationBiteValidationLines(),
+    ].join("\n");
+  }
   return [
     "CLINICAL OUTCOME REALISM & VALIDATION (CRITICAL):",
     "",
